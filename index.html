@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Jurnal Kelas TPQ Baitussalam Huda Mansurin</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- SheetJS (XLSX) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen pb-20">
+
+    <!-- APP CONTAINER -->
+    <div id="app" class="max-w-md mx-auto bg-white min-h-screen shadow-xl relative flex flex-col justify-between">
+        
+        <!-- HEADER (Hidden on Login) -->
+        <header id="app-header" class="bg-emerald-600 text-white p-4 sticky top-0 z-40 shadow-md hidden flex justify-between items-center">
+            <div>
+                <h1 class="text-md font-bold tracking-tight">TPQ Baitussalam</h1>
+                <p id="header-subtitle" class="text-xs text-emerald-100 font-medium">Jurnal Kelas</p>
+            </div>
+            <button onclick="logout()" class="p-2 bg-emerald-700 hover:bg-emerald-800 rounded-full transition-colors">
+                <i data-lucide="log-out" class="w-4 h-4"></i>
+            </button>
+        </header>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="flex-1 p-4 overflow-y-auto">
+            
+            <!-- 1. VIEW LOGIN -->
+            <div id="view-login" class="py-8 flex flex-col justify-center min-h-[80vh]">
+                <div class="text-center mb-8">
+                    <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner">
+                        <i data-lucide="book-open" class="w-10 h-10"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-slate-900 tracking-tight">Jurnal TPQ</h2>
+                    <p class="text-slate-500 text-sm mt-1">Baitussalam Huda Mansurin</p>
+                </div>
+                <div class="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
+                    <div id="login-error" class="hidden mb-4 p-3 bg-red-50 text-red-600 text-xs rounded-xl border border-red-100 font-medium"></div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Username</label>
+                            <input type="text" id="login-username" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 text-sm" placeholder="Masukkan username">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Password</label>
+                            <input type="password" id="login-password" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 text-sm" placeholder="••••••••">
+                        </div>
+                        <button onclick="handleLogin()" class="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl shadow-md shadow-emerald-200 hover:bg-emerald-700 active:scale-[0.98] transition-transform text-sm mt-2">Masuk Aplikasi</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. VIEW DASHBOARD -->
+            <div id="view-dashboard" class="hidden space-y-5">
+                <div class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-5 rounded-2xl shadow-md">
+                    <span class="text-xs bg-emerald-500/30 px-2 py-1 rounded-md font-semibold" id="dash-role-badge">Guru</span>
+                    <h3 class="text-xl font-bold mt-2" id="dash-welcome">Selamat Datang, Ustadz!</h3>
+                    <p class="text-emerald-100 text-xs mt-1" id="dash-scope">Mengelola Kelas: PAUD A</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <span class="text-slate-400 text-xs font-medium block">Total Catatan</span>
+                        <span class="text-2xl font-extrabold text-slate-900 block mt-1" id="stat-total-jurnal">0</span>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <span class="text-slate-400 text-xs font-medium block">Target Tercapai</span>
+                        <span class="text-2xl font-extrabold text-emerald-600 block mt-1" id="stat-target-progress">0%</span>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-2">
+                    <h4 class="font-bold text-slate-900 text-sm uppercase tracking-wider text-slate-400">Jurnal Terbaru</h4>
+                    <button onclick="switchView('history')" class="text-xs text-emerald-600 font-bold hover:underline">Lihat Semua</button>
+                </div>
+                <div id="dash-recent-jurnal" class="space-y-3"></div>
+            </div>
+
+            <!-- 3. VIEW INPUT JURNAL -->
+            <div id="view-input" class="hidden space-y-4">
+                <h3 class="text-lg font-bold text-slate-900 tracking-tight">Isi Jurnal Baru</h3>
+                <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Kelas</label>
+                        <select id="input-kelas" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm disabled:opacity-60" disabled></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Tanggal</label>
+                        <input type="date" id="input-tanggal" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Materi / Bab Harian</label>
+                        <input type="text" id="input-materi" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="Contoh: Iqro jilid 2, hal 10-15">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Santri Hadir</label>
+                            <input type="number" id="input-hadir" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm" value="0">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Santri Absen</label>
+                            <input type="number" id="input-absen" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm" value="0">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Catatan & Kendala Pembelajaran</label>
+                        <textarea id="input-catatan" rows="3" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="Tulis perkembangan kelas atau evaluasi di sini..."></textarea>
+                    </div>
+                    <input type="hidden" id="edit-jurnal-id" value="">
+                    <button onclick="saveJurnal()" class="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl shadow-md hover:bg-emerald-700 transition-colors text-sm">Simpan Catatan Jurnal</button>
+                    <button id="btn-cancel-edit" onclick="cancelEditJurnal()" class="w-full py-2 bg-slate-100 text-slate-600 font-semibold rounded-xl text-xs hidden">Batal Edit</button>
+                </div>
+            </div>
+
+            <!-- 4. VIEW RIWAYAT -->
+            <div id="view-history" class="hidden space-y-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-slate-900 tracking-tight">Riwayat Catatan</h3>
+                    <button onclick="exportToExcel()" class="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i> Export Excel
+                    </button>
+                </div>
+                <div class="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1 ml-1">Filter Tampilan Kelas</label>
+                    <select id="filter-history-kelas" onchange="renderHistory()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"></select>
+                </div>
+                <div id="history-list" class="space-y-3"></div>
+            </div>
+
+            <!-- 5. VIEW TARGET MATERI -->
+            <div id="view-target" class="hidden space-y-4">
+                <h3 class="text-lg font-bold text-slate-900 tracking-tight">Kurikulum & Target Materi</h3>
+                
+                <div class="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1 ml-1">Pilih Kelas</label>
+                    <select id="target-kelas-select" onchange="renderTargetMateri()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs"></select>
+                </div>
+
+                <!-- SUB-MENU IMPORT/TAMBAH MATERI -->
+                <div class="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm space-y-3">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-500 block">Kelola Daftar Materi</span>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="toggleElement('form-add-materi-single')" class="py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1">
+                            <i data-lucide="plus" class="w-3.5 h-3.5"></i> + 1 Materi
+                        </button>
+                        <button onclick="document.getElementById('excel-file-input').click()" class="py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1">
+                            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Import Excel/CSV
+                        </button>
+                        <input type="file" id="excel-file-input" class="hidden" accept=".xlsx, .xls, .csv" onchange="importMateriExcel(event)">
+                    </div>
+
+                    <!-- Single Add Form -->
+                    <div id="form-add-materi-single" class="hidden p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 mt-2">
+                        <input type="text" id="new-materi-name" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs" placeholder="Nama materi/bab kurikulum...">
+                        <div class="flex gap-2">
+                            <button onclick="addMateriSingle()" class="flex-1 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-lg shadow">Tambah</button>
+                            <button onclick="toggleElement('form-add-materi-single')" class="px-3 py-1.5 bg-slate-200 text-slate-600 text-xs font-medium rounded-lg">Batal</button>
+                        </div>
+                    </div>
+                    
+                    <p class="text-[10px] text-slate-400 leading-tight">💡 <b>Tips Import:</b> File Excel wajib memiliki kolom header bernama <code class="bg-slate-100 px-1 py-0.5 rounded text-red-600 font-mono font-bold">materi</code> di baris pertama.</p>
+                </div>
+
+                <!-- LIST TARGET MATERI -->
+                <div class="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">List Capaian Kurikulum</span>
+                        <button onclick="clearMateriKelas()" class="text-[10px] text-red-600 font-semibold hover:underline">Hapus Semua Materi Kelas Ini</button>
+                    </div>
+                    <div id="target-list" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <!-- 6. VIEW ADMIN (MANAJEMEN AKUN) -->
+            <div id="view-admin" class="hidden space-y-4">
+                <h3 class="text-lg font-bold text-slate-900 tracking-tight">Manajemen Akun Pengguna</h3>
+                
+                <!-- Form Tambah/Edit User -->
+                <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-3">
+                    <span id="form-user-title" class="text-xs font-bold uppercase tracking-wider text-slate-500 block">Tambah Akun Baru</span>
+                    <div class="space-y-3">
+                        <input type="text" id="user-username" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="Username">
+                        <input type="password" id="user-password" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="Password Baru">
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1 ml-1">Role Otoritas</label>
+                            <select id="user-role" onchange="toggleFormUserKelas()" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                                <option value="guru">Guru Kelas</option>
+                                <option value="admin">Super Admin</option>
+                            </select>
+                        </div>
+                        <div id="form-user-kelas-container">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1 ml-1">Penempatan Kelas Mandat</label>
+                            <select id="user-kelas" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm"></select>
+                        </div>
+                        <input type="hidden" id="edit-user-index" value="">
+                        <div class="flex gap-2 pt-1">
+                            <button onclick="saveUser()" class="flex-1 py-2.5 bg-emerald-600 text-white text-sm font-bold rounded-xl shadow-md">Simpan Pengguna</button>
+                            <button id="btn-cancel-user" onclick="resetFormUser()" class="px-4 py-2.5 bg-slate-100 text-slate-600 text-sm font-semibold rounded-xl hidden">Batal</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- List User -->
+                <div class="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-3">Daftar Pengguna Aktif</span>
+                    <div id="users-list" class="space-y-2"></div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- BOTTOM NAV BAR (Hidden on Login) -->
+        <nav id="app-nav" class="bg-white border-t border-slate-100 p-2 fixed bottom-0 left-0 right-0 max-w-md mx-auto z-40 hidden flex justify-around items-center shadow-lg">
+            <button onclick="switchView('dashboard')" id="nav-dashboard" class="flex flex-col items-center gap-1 p-2 text-slate-400 transition-colors">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                <span class="text-[10px] font-bold tracking-tight">Dashboard</span>
+            </button>
+            <button onclick="switchView('input')" id="nav-input" class="flex flex-col items-center gap-1 p-2 text-slate-400 transition-colors">
+                <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                <span class="text-[10px] font-bold tracking-tight">Isi Jurnal</span>
+            </button>
+            <button onclick="switchView('history')" id="nav-history" class="flex flex-col items-center gap-1 p-2 text-slate-400 transition-colors">
+                <i data-lucide="history" class="w-5 h-5"></i>
+                <span class="text-[10px] font-bold tracking-tight">Riwayat</span>
+            </button>
+            <button onclick="switchView('target')" id="nav-target" class="flex flex-col items-center gap-1 p-2 text-slate-400 transition-colors">
+                <i data-lucide="check-square" class="w-5 h-5"></i>
+                <span class="text-[10px] font-bold tracking-tight">Target</span>
+            </button>
+            <button onclick="switchView('admin')" id="nav-admin" class="flex flex-col items-center gap-1 p-2 text-slate-400 transition-colors hidden">
+                <i data-lucide="users" class="w-5 h-5"></i>
+                <span class="text-[10px] font-bold tracking-tight">Kelola Akun</span>
+            </button>
+        </nav>
+
+    </div>
+
+    <!-- CORE BUSINESS LOGIC SYSTEM -->
+    <script>
+        // 1. DATA MASTER LIST KELAS (8 Kelas Resmi Sesuai Permintaan)
+        const LIST_KELAS = [
+            { id: "paud-a", name: "PAUD A" },
+            { id: "paud-b", name: "PAUD B" },
+            { id: "kelas-1", name: "Kelas 1" },
+            { id: "kelas-2", name: "Kelas 2" },
+            { id: "kelas-3", name: "Kelas 3" },
+            { id: "kelas-4", name: "Kelas 4" },
+            { id: "kelas-5", name: "Kelas 5" },
+            { id: "kelas-6", name: "Kelas 6" }
+        ];
+
+        // 2. INJECT INITIAL DATA & DATABASE VIRTUAL SYSTEM (LocalStorage)
+        let currentUser = JSON.parse(localStorage.getItem('tpq_session')) || null;
+        let dbUsers = JSON.parse(localStorage.getItem('tpq_users'));
+        let dbJurnal = JSON.parse(localStorage.getItem('tpq_jurnal')) || [];
+        let dbTargetMateri = JSON.parse(localStorage.getItem('tpq_target_materi')) || {};
+
+        // Inisialisasi Akun Bawaan Bersih Jika Kosong
+        if (!dbUsers) {
+            dbUsers = [
+                { username: "admin", password: "admin123", role: "admin", kelas_id: "" },
+                { username: "guru1", password: "guru123", role: "guru", kelas_id: "paud-a" },
+                { username: "guru2", password: "guru123", role: "guru", kelas_id: "kelas-1" }
+            ];
+            localStorage.setItem('tpq_users', JSON.stringify(dbUsers));
+        }
+
+        // Inisialisasi Data Contoh Target Materi untuk Demonstrasi Sistem Checklist
+        if (Object.keys(dbTargetMateri).length === 0) {
+            LIST_KELAS.forEach(k => {
+                dbTargetMateri[k.id] = [
+                    { id: k.id + "-m1", name: "Pengenalan Huruf Hijaiyah Alif-Kho", tercapai: false },
+                    { id: k.id + "-m2", name: "Adab Sebelum dan Bangun Tidur", tercapai: false },
+                    { id: k.id + "-m3", name: "Hafalan Surat Al-Fatihah & Al-Ikhlas", tercapai: false }
+                ];
+            });
+            localStorage.setItem('tpq_target_materi', JSON.stringify(dbTargetMateri));
+        }
+
+        // 3. APPLICATION INITIALIZATION ON BOOT
+        document.addEventListener("DOMContentLoaded", () => {
+            initSelectOptions();
+            lucide.createIcons();
+            if (currentUser) {
+                applyLoginState();
+            } else {
+                switchView('login');
+            }
+        });
+
+        function initSelectOptions() {
+            const selects = ['input-kelas', 'filter-history-kelas', 'target-kelas-select', 'user-kelas'];
+            selects.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.innerHTML = '';
+                
+                // Tambahkan opsi kosong / semua hanya untuk filter riwayat bagi admin
+                if (id === 'filter-history-kelas') {
+                    const opt = document.createElement('option');
+                    opt.value = "all";
+                    opt.textContent = "Semua Kelas Terbuka";
+                    el.appendChild(opt);
+                }
+
+                LIST_KELAS.forEach(k => {
+                    const opt = document.createElement('option');
+                    opt.value = k.id;
+                    opt.textContent = k.name;
+                    el.appendChild(opt);
+                });
+            });
+        }
+
+        // 4. AUTENTIKASI & SESSION MANAGER
+        function handleLogin() {
+            const u = document.getElementById('login-username').value.trim();
+            const p = document.getElementById('login-password').value;
+            const errorEl = document.getElementById('login-error');
+
+            const found = dbUsers.find(user => user.username.toLowerCase() === u.toLowerCase() && user.password === p);
+            
+            if (found) {
+                currentUser = found;
+                localStorage.setItem('tpq_session', JSON.stringify(currentUser));
+                errorEl.classList.add('hidden');
+                document.getElementById('login-username').value = '';
+                document.getElementById('login-password').value = '';
+                applyLoginState();
+            } else {
+                errorEl.textContent = "Kombinasi Username atau Password salah!";
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        function applyLoginState() {
+            document.getElementById('app-header').classList.remove('hidden');
+            document.getElementById('app-header').classList.add('flex');
+            document.getElementById('app-nav').classList.remove('hidden');
+            document.getElementById('app-nav').classList.add('flex');
+            
+            // Konfigurasi Navigasi Admin Khusus
+            if (currentUser.role === 'admin') {
+                document.getElementById('nav-admin').classList.remove('hidden');
+                document.getElementById('filter-history-kelas').disabled = false;
+                document.getElementById('target-kelas-select').disabled = false;
+                document.getElementById('input-kelas').disabled = false;
+            } else {
+                document.getElementById('nav-admin').classList.add('hidden');
+                document.getElementById('filter-history-kelas').value = currentUser.kelas_id;
+                document.getElementById('filter-history-kelas').disabled = true;
+                document.getElementById('target-kelas-select').value = currentUser.kelas_id;
+                document.getElementById('target-kelas-select').disabled = true;
+                document.getElementById('input-kelas').value = currentUser.kelas_id;
+                document.getElementById('input-kelas').disabled = true;
+            }
+
+            switchView('dashboard');
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('tpq_session');
+            document.getElementById('app-header').classList.add('hidden');
+            document.getElementById('app-header').classList.remove('flex');
+            document.getElementById('app-nav').classList.add('hidden');
+            document.getElementById('app-nav').classList.remove('flex');
+            switchView('login');
+        }
+
+        // 5. NAVIGATION CORE ENGINE
+        function switchView(viewName) {
+            // Sembunyikan seluruh modul view
+            ['login', 'dashboard', 'input', 'history', 'target', 'admin'].forEach(v => {
+                document.getElementById(`view-${v}`).classList.add('hidden');
+                const navBtn = document.getElementById(`nav-${v}`);
+                if (navBtn) navBtn.classList.replace('text-emerald-600', 'text-slate-400');
+            });
+
+            // Tampilkan modul view tujuan
+            document.getElementById(`view-${viewName}`).classList.remove('hidden');
+            const activeNav = document.getElementById(`nav-${viewName}`);
+            if (activeNav) activeNav.classList.replace('text-slate-400', 'text-emerald-600');
+
+            // Jalankan fungsi refresh data sesuai view aktif
+            if (viewName === 'dashboard') loadDashboard();
+            if (viewName === 'input' && !document.getElementById('edit-jurnal-id').value) resetFormJurnal();
+            if (viewName === 'history') renderHistory();
+            if (viewName === 'target') renderTargetMateri();
+            if (viewName === 'admin') renderAdminPanel();
+            
+            lucide.createIcons();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleElement(id) {
+            const el = document.getElementById(id);
+            el.classList.toggle('hidden');
+        }
+
+        // 6. MODULE: DASHBOARD SYSTEM
+        function loadDashboard() {
+            const kelasObj = LIST_KELAS.find(k => k.id === currentUser.kelas_id);
+            document.getElementById('dash-role-badge').textContent = currentUser.role === 'admin' ? 'Super Admin' : 'Guru Kelas';
+            document.getElementById('dash-welcome').textContent = `Assalamu'alaikum, ${currentUser.username}!`;
+            document.getElementById('dash-scope').textContent = currentUser.role === 'admin' ? 'Otoritas Akses Seluruh Kelas' : `Mengelola Kelas: ${kelasObj ? kelasObj.name : '-'}`;
+
+            // Filter data jurnal milik ruang lingkup user
+            const myJurnal = dbJurnal.filter(j => currentUser.role === 'admin' || j.kelas_id === currentUser.kelas_id);
+            document.getElementById('stat-total-jurnal').textContent = myJurnal.length;
+
+            // Hitung persentase target materi kelas aktif
+            const targetKelasId = currentUser.role === 'admin' ? 'paud-a' : currentUser.kelas_id;
+            const listMateri = dbTargetMateri[targetKelasId] || [];
+            const tercapaiCount = listMateri.filter(m => m.tercapai).length;
+            const percent = listMateri.length ? Math.round((tercapaiCount / listMateri.length) * 100) : 0;
+            document.getElementById('stat-target-progress').textContent = `${percent}%`;
+
+            // Tampilkan 3 Jurnal Aktivitas Terbaru
+            const recentContainer = document.getElementById('dash-recent-jurnal');
+            recentContainer.innerHTML = '';
+            
+            const sorted = [...myJurnal].sort((a,b) => new Date(b.tanggal) - new Date(a.tanggal)).slice(0, 3);
+            
+            if (sorted.length === 0) {
+                recentContainer.innerHTML = `<div class="text-center py-6 text-xs text-slate-400 border border-dashed border-slate-200 rounded-xl">Belum ada catatan jurnal yang diisi.</div>`;
+                return;
+            }
+
+            sorted.forEach(j => {
+                const kName = LIST_KELAS.find(k => k.id === j.kelas_id)?.name || j.kelas_id;
+                const div = document.createElement('div');
+                div.className = "bg-white p-4 border border-slate-100 rounded-xl shadow-xs";
+                div.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">${kName}</span>
+                        <span class="text-[10px] text-slate-400 font-medium">${formatTanggal(j.tanggal)}</span>
+                    </div>
+                    <h5 class="text-xs font-bold text-slate-800 mt-2 line-clamp-1">${j.materi}</h5>
+                    <p class="text-[11px] text-slate-500 mt-1 line-clamp-2">${j.catatan || 'Tidak ada catatan khusus.'}</p>
+                `;
+                recentContainer.appendChild(div);
+            });
+        }
+
+        // 7. MODULE: CRUD JURNAL
+        function saveJurnal() {
+            const kelas_id = document.getElementById('input-kelas').value;
+            const tanggal = document.getElementById('input-tanggal').value;
+            const materi = document.getElementById('input-materi').value.trim();
+            const hadir = parseInt(document.getElementById('input-hadir').value) || 0;
+            const absen = parseInt(document.getElementById('input-absen').value) || 0;
+            const catatan = document.getElementById('input-catatan').value.trim();
+            const editId = document.getElementById('edit-jurnal-id').value;
+
+            if (!tanggal || !materi) {
+                alert("Mohon lengkapi kolom Tanggal dan Materi!");
+                return;
+            }
+
+            if (editId) {
+                // Mode Update / Edit
+                const index = dbJurnal.findIndex(j => j.id === editId);
+                if (index !== -1) {
+                    dbJurnal[index] = { ...dbJurnal[index], kelas_id, tanggal, materi, hadir, absen, catatan };
+                }
+            } else {
+                // Mode Insert Baru
+                const newJurnal = {
+                    id: 'jurnal-' + Date.now(),
+                    kelas_id,
+                    tanggal,
+                    materi,
+                    hadir,
+                    absen,
+                    catatan,
+                    author: currentUser.username
+                };
+                dbJurnal.push(newJurnal);
+            }
+
+            localStorage.setItem('tpq_jurnal', JSON.stringify(dbJurnal));
+            alert("Data Jurnal Berhasil Disimpan!");
+            cancelEditJurnal();
+            switchView('history');
+        }
+
+        function editJurnal(id) {
+            const j = dbJurnal.find(item => item.id === id);
+            if (!j) return;
+
+            document.getElementById('edit-jurnal-id').value = j.id;
+            document.getElementById('input-kelas').value = j.kelas_id;
+            document.getElementById('input-tanggal').value = j.tanggal;
+            document.getElementById('input-materi').value = j.materi;
+            document.getElementById('input-hadir').value = j.hadir;
+            document.getElementById('input-absen').value = j.absen;
+            document.getElementById('input-catatan').value = j.catatan;
+
+            document.getElementById('btn-cancel-edit').classList.remove('hidden');
+            switchView('input');
+            document.getElementById('view-input').querySelector('h3').textContent = "Edit Catatan Jurnal";
+        }
+
+        function cancelEditJurnal() {
+            document.getElementById('edit-jurnal-id').value = '';
+            document.getElementById('btn-cancel-edit').classList.add('hidden');
+            document.getElementById('view-input').querySelector('h3').textContent = "Isi Jurnal Baru";
+            resetFormJurnal();
+        }
+
+        function resetFormJurnal() {
+            document.getElementById('input-tanggal').value = new Date().toISOString().split('T')[0];
+            document.getElementById('input-materi').value = '';
+            document.getElementById('input-hadir').value = '0';
+            document.getElementById('input-absen').value = '0';
+            document.getElementById('input-catatan').value = '';
+            if (currentUser && currentUser.role !== 'admin') {
+                document.getElementById('input-kelas').value = currentUser.kelas_id;
+            }
+        }
+
+        function deleteJurnal(id) {
+            if (confirm("Apakah anda yakin ingin menghapus catatan jurnal ini selamanya?")) {
+                dbJurnal = dbJurnal.filter(j => j.id !== id);
+                localStorage.setItem('tpq_jurnal', JSON.stringify(dbJurnal));
+                renderHistory();
+            }
+        }
+
+        // 8. MODULE: RIWAYAT & EXPORT EXCEL
+        function renderHistory() {
+            const filterKelas = document.getElementById('filter-history-kelas').value;
+            const container = document.getElementById('history-list');
+            container.innerHTML = '';
+
+            // Filter data berdasar hak akses & dropdown filter
+            let filtered = dbJurnal.filter(j => currentUser.role === 'admin' || j.kelas_id === currentUser.kelas_id);
+            if (currentUser.role === 'admin' && filterKelas !== 'all') {
+                filtered = filtered.filter(j => j.kelas_id === filterKelas);
+            }
+
+            // Urutkan tanggal terbaru paling atas
+            filtered.sort((a,b) => new Date(b.tanggal) - new Date(a.tanggal));
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="text-center py-12 text-slate-400 text-xs bg-white rounded-2xl border border-slate-100">Catatan jurnal tidak ditemukan.</div>`;
+                return;
+            }
+
+            filtered.forEach(j => {
+                const kName = LIST_KELAS.find(k => k.id === j.kelas_id)?.name || j.kelas_id;
+                const div = document.createElement('div');
+                div.className = "bg-white p-4 border border-slate-100 rounded-2xl shadow-xs space-y-2 relative";
+                div.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">${kName}</span>
+                        <span class="text-[10px] text-slate-400 font-medium">${formatTanggal(j.tanggal)}</span>
+                    </div>
+                    <div class="pr-12">
+                        <h4 class="text-sm font-bold text-slate-900">${j.materi}</h4>
+                        <p class="text-xs text-slate-600 mt-1">${j.catatan || '-'}</p>
+                        <div class="flex gap-4 mt-2 text-[10px] text-slate-400 font-semibold">
+                            <span class="flex items-center gap-0.5"><i data-lucide="user-check" class="w-3 h-3"></i> Hadir: ${j.hadir}</span>
+                            <span class="flex items-center gap-0.5"><i data-lucide="user-x" class="w-3 h-3"></i> Absen: ${j.absen}</span>
+                        </div>
+                    </div>
+                    <div class="absolute bottom-4 right-4 flex gap-1">
+                        <button onclick="editJurnal('${j.id}')" class="p-1.5 bg-amber-50 text-amber-600 rounded-lg border border-amber-100 hover:bg-amber-100">
+                            <i data-lucide="edit" class="w-3.5 h-3.5"></i>
+                        </button>
+                        <button onclick="deleteJurnal('${j.id}')" class="p-1.5 bg-red-50 text-red-600 rounded-lg border border-red-100 hover:bg-red-100">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+            lucide.createIcons();
+        }
+
+        function exportToExcel() {
+            let filtered = dbJurnal.filter(j => currentUser.role === 'admin' || j.kelas_id === currentUser.kelas_id);
+            if (filtered.length === 0) {
+                alert("Data kosong, tidak ada jurnal untuk diexport!");
+                return;
+            }
+
+            // Transformasi struktur data JSON untuk Excel agar rapi
+            const exportData = filtered.map((j, index) => ({
+                "No": index + 1,
+                "Kelas": LIST_KELAS.find(k => k.id === j.kelas_id)?.name || j.kelas_id,
+                "Tanggal": j.tanggal,
+                "Materi Pembelajaran": j.materi,
+                "Santri Hadir": j.hadir,
+                "Santri Absen": j.absen,
+                "Catatan Guru Evaluasi": j.catatan,
+                "Diinput Oleh": j.author || 'Admin'
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(exportData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Jurnal TPQ");
+            
+            // Generate File & Trigger Download di smartphone
+            const filename = `Jurnal_TPQ_Baitussalam_${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(workbook, filename);
+        }
+
+        // 9. MODULE: TARGET MATERI, CHECKLIST & ADVANCED IMPORT SYSTEM
+        function renderTargetMateri() {
+            const targetKelasId = document.getElementById('target-kelas-select').value;
+            const container = document.getElementById('target-list');
+            container.innerHTML = '';
+
+            const listMateri = dbTargetMateri[targetKelasId] || [];
+
+            if (listMateri.length === 0) {
+                container.innerHTML = `<div class="text-center py-8 text-xs text-slate-400 border border-dashed border-slate-200 rounded-xl">Belum ada daftar kurikulum materi. Anda bisa menambahkannya satu per satu atau import dari file Excel/CSV di atas.</div>`;
+                return;
+            }
+
+            listMateri.forEach(m => {
+                const div = document.createElement('div');
+                div.className = `flex justify-between items-center p-3 border rounded-xl transition-all ${m.tercapai ? 'bg-emerald-50/50 border-emerald-100 text-slate-500' : 'bg-slate-50 border-slate-100 text-slate-800'}`;
+                div.innerHTML = `
+                    <div class="flex items-center gap-3 pr-4 flex-1">
+                        <input type="checkbox" ${m.tercapai ? 'checked' : ''} onchange="toggleMateriStatus('${targetKelasId}', '${m.id}')" class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer">
+                        <span class="text-xs font-semibold leading-snug ${m.tercapai ? 'line-through text-slate-400' : ''}">${m.name}</span>
+                    </div>
+                    <button onclick="deleteSingleMateri('${targetKelasId}', '${m.id}')" class="text-slate-300 hover:text-red-500 p-1">
+                        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+            lucide.createIcons();
+        }
+
+        function toggleMateriStatus(kelasId, materiId) {
+            const index = dbTargetMateri[kelasId].findIndex(m => m.id === materiId);
+            if (index !== -1) {
+                dbTargetMateri[kelasId][index].tercapai = !dbTargetMateri[kelasId][index].tercapai;
+                localStorage.setItem('tpq_target_materi', JSON.stringify(dbTargetMateri));
+                renderTargetMateri();
+            }
+        }
+
+        function addMateriSingle() {
+            const kelasId = document.getElementById('target-kelas-select').value;
+            const inputName = document.getElementById('new-materi-name').value.trim();
+
+            if (!inputName) {
+                alert("Nama materi tidak boleh kosong!");
+                return;
+            }
+
+            if (!dbTargetMateri[kelasId]) dbTargetMateri[kelasId] = [];
+
+            dbTargetMateri[kelasId].push({
+                id: 'mat-' + Date.now(),
+                name: inputName,
+                tercapai: false
+            });
+
+            localStorage.setItem('tpq_target_materi', JSON.stringify(dbTargetMateri));
+            document.getElementById('new-materi-name').value = '';
+            toggleElement('form-add-materi-single');
+            renderTargetMateri();
+        }
+
+        function deleteSingleMateri(kelasId, materiId) {
+            dbTargetMateri[kelasId] = dbTargetMateri[kelasId].filter(m => m.id !== materiId);
+            localStorage.setItem('tpq_target_materi', JSON.stringify(dbTargetMateri));
+            renderTargetMateri();
+        }
+
+        function clearMateriKelas() {
+            const kelasId = document.getElementById('target-kelas-select').value;
+            if (confirm("Apakah anda yakin ingin menghapus seluruh kurikulum daftar materi untuk kelas ini?")) {
+                dbTargetMateri[kelasId] = [];
+                localStorage.setItem('tpq_target_materi', JSON.stringify(dbTargetMateri));
+                renderTargetMateri();
+            }
+        }
+
+        // FUNGSI INTI: PARSING & IMPORT EXCEL / CSV
+        function importMateriExcel(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const kelasId = document.getElementById('target-kelas-select').value;
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const json = XLSX.utils.sheet_to_json(worksheet);
+
+                    if (json.length === 0) {
+                        alert("File kosong atau format salah!");
+                        return;
+                    }
+
+                    // Validasi Struktur Kolom 'materi'
+                    let importedCount = 0;
+                    if (!dbTargetMateri[kelasId]) dbTargetMateri[kelasId] = [];
+
+                    json.forEach((row, i) => {
+                        // Mendukung case-insensitive untuk nama header kolom
+                        const nameKey = Object.keys(row).find(k => k.toLowerCase() === 'materi');
+                        if (nameKey && row[nameKey]) {
+                            dbTargetMateri[kelasId].push({
+                                id: `mat-import-${Date.now()}-${i}`,
+                                name: row[nameKey].toString().trim(),
+                                tercapai: false
+                            });
+                            importedCount++;
+                        }
+                    });
+
+                    if (importedCount > 0) {
+                        localStorage.setItem('tpq_target_materi', JSON.stringify(dbTargetMateri));
+                        alert(`Berhasil mengimpor ${importedCount} materi kurikulum baru ke kelas ini!`);
+                        renderTargetMateri();
+                    } else {
+                        alert("Gagal impor! Pastikan baris pertama Excel Anda memiliki kolom bernama 'materi'.");
+                    }
+                } catch (err) {
+                    alert("Terjadi kesalahan saat membaca dokumen file: " + err.message);
+                }
+                document.getElementById('excel-file-input').value = ''; // Reset input file
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        // 10. MODULE: SUPER USER ADMINISTRATOR (USER CRUD MANAGEMENT)
+        function renderAdminPanel() {
+            const container = document.getElementById('users-list');
+            container.innerHTML = '';
+
+            dbUsers.forEach((u, index) => {
+                const kName = LIST_KELAS.find(k => k.id === u.kelas_id)?.name || '-';
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center p-3 bg-slate-50 border border-slate-100 rounded-xl";
+                div.innerHTML = `
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-slate-800">${u.username}</span>
+                            <span class="text-[9px] font-bold uppercase px-1.5 py-0.2 bg-slate-200 text-slate-600 rounded">${u.role}</span>
+                        </div>
+                        <span class="text-[10px] text-slate-400 block mt-0.5">Mandat Kelas: ${u.role === 'admin' ? 'Akses Master Global' : kName}</span>
+                    </div>
+                    <div class="flex gap-1">
+                        <button onclick="editUser(${index})" class="p-1 bg-amber-50 text-amber-600 border border-amber-100 rounded-lg hover:bg-amber-100">
+                            <i data-lucide="edit" class="w-3 h-3"></i>
+                        </button>
+                        <button onclick="deleteUser(${index})" class="p-1 bg-red-50 text-red-600 border border-red-100 rounded-lg hover:bg-red-100 ${u.username === 'admin' ? 'opacity-40 pointer-events-none' : ''}">
+                            <i data-lucide="trash-2" class="w-3 h-3"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+            lucide.createIcons();
+        }
+
+        function saveUser() {
+            const username = document.getElementById('user-username').value.trim();
+            const password = document.getElementById('user-password').value;
+            const role = document.getElementById('user-role').value;
+            const kelas_id = role === 'admin' ? '' : document.getElementById('user-kelas').value;
+            const editIndex = document.getElementById('edit-user-index').value;
+
+            if (!username) {
+                alert("Username tidak boleh kosong!");
+                return;
+            }
+
+            const payload = { username, role, kelas_id };
+            
+            if (editIndex !== '') {
+                // Mode Update Akun
+                const idx = parseInt(editIndex);
+                // Jika password diisi berarti ganti password, jika kosong gunakan password lama
+                payload.password = password ? password : dbUsers[idx].password;
+                dbUsers[idx] = payload;
+                alert("Akun pengguna berhasil diperbarui!");
+            } else {
+                // Mode Tambah Akun Baru
+                if (!password) {
+                    alert("Password wajib diisi untuk pembuatan akun baru!");
+                    return;
+                }
+                // Cek duplikasi nama username
+                if (dbUsers.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+                    alert("Username tersebut sudah terpakai!");
+                    return;
+                }
+                payload.password = password;
+                dbUsers.push(payload);
+                alert("Akun pengguna baru berhasil ditambahkan!");
+            }
+
+            localStorage.setItem('tpq_users', JSON.stringify(dbUsers));
+            resetFormUser();
+            renderAdminPanel();
+        }
+
+        function editUser(index) {
+            const u = dbUsers[index];
+            document.getElementById('edit-user-index').value = index;
+            document.getElementById('user-username').value = u.username;
+            document.getElementById('user-password').value = ''; // Biarkan kosong jika tidak ingin ganti password
+            document.getElementById('user-password').placeholder = "Isi hanya jika ingin ganti password";
+            document.getElementById('user-role').value = u.role;
+            
+            toggleFormUserKelas();
+            if (u.role === 'guru') {
+                document.getElementById('user-kelas').value = u.kelas_id;
+            }
+
+            document.getElementById('form-user-title').textContent = `Edit Akun: ${u.username}`;
+            document.getElementById('btn-cancel-user').classList.remove('hidden');
+        }
+
+        function deleteUser(index) {
+            if (dbUsers[index].username === 'admin') {
+                alert("Akun master admin bawaan sistem tidak boleh dihapus!");
+                return;
+            }
+            if (confirm(`Apakah Anda yakin ingin menghapus akun guru "${dbUsers[index].username}"?`)) {
+                dbUsers.splice(index, 1);
+                localStorage.setItem('tpq_users', JSON.stringify(dbUsers));
+                renderAdminPanel();
+            }
+        }
+
+        function resetFormUser() {
+            document.getElementById('edit-user-index').value = '';
+            document.getElementById('user-username').value = '';
+            document.getElementById('user-password').value = '';
+            document.getElementById('user-password').placeholder = "Password Baru";
+            document.getElementById('user-role').value = 'guru';
+            document.getElementById('form-user-title').textContent = "Tambah Akun Baru";
+            document.getElementById('btn-cancel-user').classList.add('hidden');
+            toggleFormUserKelas();
+        }
+
+        function toggleFormUserKelas() {
+            const role = document.getElementById('user-role').value;
+            const container = document.getElementById('form-user-kelas-container');
+            if (role === 'admin') {
+                container.classList.add('hidden');
+            } else {
+                container.classList.remove('hidden');
+            }
+        }
+
+        // 11. HELPER UTILS
+        function formatTanggal(dateString) {
+            if (!dateString) return '';
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString('id-ID', options);
+        }
+    </script>
+</body>
+</html>
