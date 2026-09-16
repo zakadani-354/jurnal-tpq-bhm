@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi TPQ Baitussalam Huda Mansurin</title>
+    <style>
+        /* Desain Antarmuka Mobile-First & PC Standard (100% Offline Ready) */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background: #f3f4f6; color: #1f2937; padding-bottom: 80px; }
+        .container { max-width: 600px; margin: 0 auto; padding: 16px; }
+        
+        /* Halaman Gerbang Masuk */
+        .login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; background: linear-gradient(135deg, #059669 0%, #0f766e 100%); }
+        .login-box { background: white; padding: 32px; border-radius: 16px; width: 100%; max-w: 400px; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); text-align: center; }
+        
+        /* Wadah Komponen Utama */
+        .header-app { background: white; padding: 16px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+               /* SOLUSI MUTLAK: MEMAKSA TOMBOL KELUAR MENEMPEL DI LAPISAN LAYAR TERDEPAN */
+        .btn-logout { 
+            position: fixed !important;
+            top: 24px !important;       /* Jarak dari batas atas layar monitor */
+            right: 24px !important;     /* Jarak dari batas kanan layar monitor */
+            background: #fee2e2 !important; 
+            color: #dc2626 !important; 
+            border: 1px solid #fecaca !important; 
+            padding: 10px 18px !important; 
+            border-radius: 8px !important; 
+            font-weight: bold !important; 
+            cursor: pointer !important; 
+            z-index: 999999 !important; /* Nilai z-index maksimal agar mustahil tertutup elemen lain */
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06) !important;
+            transition: all 0.2s ease;
+        }
+        .btn-logout:hover {
+            background: #dc2626 !important;
+            color: #ffffff !important;
+            border-color: #dc2626 !important;
+        }
+
+        .card { background: white; padding: 16px; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 16px; }
+        .bg-banner { background: linear-gradient(to right, #047857, #0d9488); color: white; padding: 20px; border-radius: 16px; margin-bottom: 20px; }
+        
+        /* Pengaturan Layout Formulir */
+        .form-group { margin-bottom: 16px; text-align: left; }
+        .form-group label { display: block; font-size: 14px; font-weight: 600; color: #4b5563; margin-bottom: 6px; }
+        .input-control { width: 100%; padding: 10px 14px; border: 1px solid #d1d5db; border-radius: 10px; font-size: 16px; outline: none; }
+        .input-control:focus { border-color: #059669; box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2); }
+        .btn-primary { width: 100%; background: #059669; color: white; border: none; padding: 12px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; text-align: center; }
+        .btn-primary:hover { background: #047857; }
+        .btn-secondary { background: #e5e7eb; color: #374151; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 500; cursor: pointer; }
+        .btn-success { background: #0284c7; color: white; border: none; padding: 10px 16px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .btn-success:hover { background: #0369a1; }
+        
+        /* Navigasi Menu Smartphone Bawah */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #e5e7eb; height: 64px; display: flex; max-width: 600px; margin: 0 auto; box-shadow: 0 -4px 10px rgba(0,0,0,0.05); z-index: 100; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: none; border: none; color: #9ca3af; font-size: 11px; cursor: pointer; }
+        .nav-item.active { color: #059669; font-weight: bold; }
+        .nav-item span { font-size: 18px; margin-bottom: 2px; }
+        
+        /* Tabel & Penanda Warna (Badge) */
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; background: #e0f2fe; color: #0369a1; }
+        .badge-admin { background: #f3e8ff; color: #6b21a8; }
+        .badge-kelas { background: #d1fae5; color: #065f46; }
+        .materi-list-box { max-height: 250px; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 10px; margin-top: 10px; }
+        .file-upload-wrapper { position: relative; overflow: hidden; display: inline-block; }
+        .file-upload-wrapper input[type=file] { position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+        th { background: #f9fafb; color: #6b7280; font-weight: 600; }
+        .view-section { display: none; }
+    </style>
+        <!-- === PERBAIKAN FINAL KODE CETAK: HANYA MENYISAKAN AREA RAPORT INTI === -->
+         <style>
+@media print {
+  /* 1. Sembunyikan elemen menu aplikasi secara spesifik berdasarkan class/id */
+  .bottom-nav, 
+  .no-print, 
+  .bg-banner, 
+  #filter-admin-box, 
+  h2.no-print, 
+  #target-siswa-kelas, 
+  #target-siswa-nama { 
+    display: none !important; 
+  }
+
+  /* 2. Sembunyikan section lain selain rapor */
+  .view-section:not(#view-raportFinal) { 
+    display: none !important; 
+  }
+
+  /* 3. Atur posisi body agar elemen di luar print area tidak menyisakan ruang kosong */
+  html, body {
+    background: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+  }
+
+  /* 4. Paksa container rapor untuk naik ke paling atas halaman */
+  #view-raportFinal {
+    display: block !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    z-index: 99999 !important; /* Memastikan rapor berada di lapisan paling atas */
+  }
+
+  /* 5. Tampilkan area dokumen resmi rapor */
+  #area-dokumen-raport-resmi {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  /* 6. Desain tabel standar dokumen resmi */
+  table, th, td {
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
+  }
+}
+</style>
+
+<!-- SUNTIKKAN TEPAT DI ATAS TAG </head> AGAR DIMUAT DULUAN OLEH BROWSER -->
+<script>
+function cetakHalamanDashboardMurni() {
+    // 1. Ambil data filter aktif dari layar dashboard
+    var filterKelasEl = document.getElementById('dash-filter-kelas');
+    var fKelas = filterKelasEl ? filterKelasEl.value : 'SEMUA';
+    
+    var filterBulanEl = document.getElementById('dash-filter-bulan');
+    var fBulan = filterBulanEl ? filterBulanEl.value : 'SEMUA';
+
+    var filterKelompokEl = document.getElementById('dash-filter-kelompok');
+    var fKelompok = filterKelompokEl ? filterKelompokEl.value : 'SEMUA';
+    
+    // 2. Ambil angka persentase kehadiran untuk membuat diagram lingkaran
+    var persenHadirEl = document.getElementById('dash-persen-hadir');
+    var persenHadirTeks = persenHadirEl ? persenHadirEl.innerText : '0%';
+    var persenAngka = parseInt(persenHadirTeks) || 0;
+    var persenSisa = 100 - persenAngka;
+    
+    // 3. Ambil visual grafik batang dari dashboard
+    var areaGrafik = document.getElementById('grafik-css-container');
+    var isiGrafikHtml = areaGrafik ? areaGrafik.innerHTML : '';
+
+    // 4. Buka jendela popup cetak baru
+    var winDash = window.open('', '_blank', 'width=950,height=750');
+    if (!winDash) {
+        alert("Mohon izinkan sistem Pop-up pada browser Anda agar dokumen cetak bisa terbuka!");
+        return;
+    }
+    
+    // 5. Susun struktur isi dokumen cetak baru
+    var kontenHtml = '<html><head><title>Laporan_Statistik_Dashboard_TPQ</title>' +
+        '<style>' +
+        'body { font-family: Arial, sans-serif; padding: 30px; color: #111827; background: #ffffff; }' +
+        '.header-cetak { text-align: center; border-bottom: 3px double #000000; padding-bottom: 12px; margin-bottom: 25px; }' +
+        '.header-cetak h2 { margin: 0; text-transform: uppercase; font-size: 18px; }' +
+        '.header-cetak p { margin: 5px 0 0 0; color: #4b5563; font-size: 13px; }' +
+        
+        /* Layout Grid untuk menyandingkan dua diagram */
+        '.grid-visual { display: grid; grid-template-columns: 1.2fr 1fr; gap: 30px; margin-top: 20px; }' +
+        '.box-diagram { border: 1px solid #e5e7eb; padding: 20px 20px 40px 20px; border-radius: 8px; background: #ffffff; }' +
+        '.box-judul { font-size: 13px; font-weight: bold; margin-bottom: 20px; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; color: #374151; }' +
+        
+        /* KUNCI UTAMA: Memaksa warna latar belakang/grafik muncul saat di-print */
+        '* { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }' +
+        
+        /* Gaya Layout Diagram Batang */
+        '.wrapper-grafik-batang { display: flex; justify-content: center; gap: 40px; align-items: flex-end; height: 180px; }' +
+        
+        /* Gaya Layout Diagram Lingkaran (Pie Chart CSS) */
+        '.wrapper-pie { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 180px; gap: 15px; }' +
+        '.pie-chart { ' +
+            'width: 120px; height: 120px; border-radius: 50%; ' +
+            'background: conic-gradient(#059669 0% ' + persenAngka + '%, #e5e7eb ' + persenAngka + '% 100%);' +
+        '}' +
+        '.pie-keterangan { font-size: 14px; font-weight: bold; color: #111827; }' +
+        '.pie-legend { display: flex; gap: 15px; font-size: 11px; font-weight: 600; }' +
+        '.legend-item { display: flex; align-items: center; gap: 5px; }' +
+        '</style></head><body>' +
+        
+        '<div class="header-cetak">' +
+        '<h2>Laporan Perkembangan & Statistik Pembelajaran TPQ</h2>' +
+        '<p>Kelas: <strong>' + fKelas + '</strong> | Kelompok: <strong>' + fKelompok + '</strong> | Bulan: <strong>' + fBulan + '</strong></p>' +
+        '</div>' +
+
+        '<div class="grid-visual">' +
+            /* Kolom Kiri: Diagram Batang */
+            '<div class="box-diagram">' +
+                '<div class="box-judul">📊 DIAGRAM GRAFIK PRESENSI HARIAN TERAKHIR:</div>' +
+                '<div class="wrapper-grafik-batang">' + isiGrafikHtml + '</div>' +
+            '</div>' +
+            
+            /* Kolom Kanan: Diagram Lingkaran */
+            '<div class="box-diagram">' +
+                '<div class="box-judul">⭕ PERSENTASE TOTAL KEHADIRAN SANTRI:</div>' +
+                '<div class="wrapper-pie">' +
+                    '<div class="pie-chart"></div>' +
+                    '<div class="pie-keterangan">Hadir: ' + persenHadirTeks + '</div>' +
+                    '<div class="pie-legend">' +
+                        '<div class="legend-item"><div style="width:12px;height:12px;background:#059669;border-radius:2px;"></div> Hadir ('+persenAngka+'%)</div>' +
+                        '<div class="legend-item"><div style="width:12px;height:12px;background:#e5e7eb;border-radius:2px;"></div> Absen ('+persenSisa+'%)</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>' +
+        '</div>' +
+        
+        '</body></html>';
+
+    winDash.document.body.innerHTML = kontenHtml;
+
+    setTimeout(function() {
+        winDash.print();
+        winDash.close();
+    }, 450);
+}
+
+window.cetakHalamanDashboardMurni = cetakHalamanDashboardMurni;
+</script>
+
+
+
+
+</head>
+<body>
+
+    <!-- GERBANG HALAMAN LOGIN (Fitur 3) -->
+    <div id="view-login" class="login-screen">
+        <div class="login-box">
+            <img src="logo-tpq.png" style="width: 200px; height: 200px; object-fit: contain;">
+            <h2 style="font-size: 20px; font-weight: bold; color: #111827;">APLIKASI PENGELOLAAN TPQ</h2>
+            <p style="font-size: 16px; : #6b7280; margin-bottom: 24px;">Baitussalam Huda Mansurin</p>
+            <form id="form-login" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>Username Pengajar</label>
+                    <input type="text" id="login-username" required class="input-control" placeholder="Masukkan username">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="login-password" required class="input-control" placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn-primary" style="margin-top: 10px;">Masuk ke Aplikasi</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- STRUKTUR ANTARMUKA UTAMA SETELAH LOGIN (Fitur 2 & 4) -->
+    <div id="app-content" class="container" style="display: none;">
+        
+              <!-- === PEMBARUAN DASHBOARD UTAMA DENGAN RESUME GRAFIK VISUAL (Fitur 12 & 15) === -->
+        <main id="view-dashboard" class="view-section space-y-6">
+            <div class="bg-banner" id="area-cetak-dashboard">
+                <h3 style="font-size: 16px; font-weight: 500; opacity: 0.9;">Selamat Datang di TPQ Baitussalam</h3>
+                <p id="dashboard-welcome-name" style="font-size: 20px; font-weight: bold; margin-top: 4px;"></p>
+                <p style="font-size: 11px; margin-top: 10px; opacity: 0.8;">Resume kurikulum log jurnal dan persentase kehadiran santri Huda Mansurin.</p>
+            </div>
+
+            <!-- === FILTER DASHBOARD INTERAKTIF (Fitur 12 & 15) === -->
+            <div class="card" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: #f9fafb; border: 1px solid #e5e7eb; margin-bottom: 16px;">
+                <!-- Filter Kelas -->
+                <div style="flex: 1; min-width: 120px;">
+                    <label style="font-size: 11px; font-weight: bold; color: #4b5563; display: block; margin-bottom: 4px;">🎯 FILTER KELAS</label>
+                    <select id="dash-filter-kelas" onchange="prosesResumeDashboard()" class="input-control" style="background: white; padding: 6px 10px; font-size: 13px; width: 100%;">
+                        <!-- Opsi otomatis diisi via JS -->
+                    </select>
+                </div>
+                <!-- Filter Bulan -->
+                <div style="flex: 1; min-width: 120px;">
+                    <label style="font-size: 11px; font-weight: bold; color: #4b5563; display: block; margin-bottom: 4px;">📅 FILTER BULAN</label>
+                    <select id="dash-filter-bulan" onchange="prosesResumeDashboard()" class="input-control" style="background: white; padding: 6px 10px; font-size: 13px; width: 100%;">
+                        <option value="SEMUA">-- Semua Bulan --</option>
+                        <option value="01">Januari</option>
+                        <option value="02">Februari</option>
+                        <option value="03">Maret</option>
+                        <option value="04">April</option>
+                        <option value="05">Mei</option>
+                        <option value="06">Juni</option>
+                        <option value="07">Juli</option>
+                        <option value="08">Agustus</option>
+                        <option value="09">September</option>
+                        <option value="10">Oktober</option>
+                        <option value="11">November</option>
+                        <option value="12">Desember</option>
+                    </select>
+                </div>
+                <!-- Filter Kelompok -->
+                <div style="flex: 1; min-width: 120px;">
+                    <label style="font-size: 11px; font-weight: bold; color: #4b5563; display: block; margin-bottom: 4px;">👥 FILTER KELOMPOK</label>
+                    <select id="dash-filter-kelompok" onchange="prosesResumeDashboard()" class="input-control" style="background: white; padding: 6px 10px; font-size: 13px; width: 100%;">
+                        <option value="SEMUA">-- Semua Kelompok --</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- === KARTU KPI RESUME RINGKASAN ANGKA (DIRAPIKAN SEJAJAR) === -->
+                        <!-- === GRID UTAMA DASHBOARD: DUA KOLOM BERDAMPINGAN DENGAN LEBAR SEIMBANG === -->
+            <div style="display: flex; gap: 16px; align-items: stretch; flex-wrap: wrap; width: 100%; margin-top: 16px; margin-bottom: 24px;">
+                
+                <!-- KOLOM KIRI (TOTAL JURNAL + GRAFIK BATANG) -->
+                <div style="flex: 1.2; min-width: 280px; display: flex; flex-direction: column; gap: 16px;">
+                    
+                    <!-- KPI Total Jurnal (Lebar Mengikuti Diagram) -->
+                    <div class="card" style="text-align: center; margin: 0; padding: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 1px solid #e5e7eb; border-radius: 8px; background: #ffffff; width: 100%;">
+                        <span style="font-size: 24px;">📝</span>
+                        <h4 style="color: #6b7280; font-size: 12px; font-weight: 500; margin: 6px 0 2px 0; text-transform: uppercase; letter-spacing: 0.5px;">Total Jurnal</h4>
+                        <p id="dash-total-jurnal" style="font-size: 26px; font-weight: bold; color: #111827; margin: 0;">0</p>
+                    </div>
+
+                    <!-- Grafik Batang Vertikal -->
+                    <div class="card" style="flex: 1; padding: 20px 16px 16px 16px; margin: 0; border: 1px solid #e5e7eb; border-radius: 8px; background: #ffffff; display: flex; flex-direction: column; justify-content: space-between;">
+                        <h4 style="font-size: 12px; font-weight: bold; color: #4b5563; text-transform: uppercase; margin: 0 0 20px 0; text-align: center; letter-spacing: 0.5px;">Grafik Kehadiran Santri (Harian)</h4>
+                        <div id="grafik-css-container" style="display: flex; justify-content: space-around; align-items: flex-end; height: 180px; padding: 0 10px; border-bottom: 2px solid #e5e7eb; position: relative; margin-bottom: 8px;">
+                            <!-- Tiang balok diagram batang vertikal akan disuntikkan dinamis via JS -->
+                        </div>
+                    </div>
+
+                </div>
+                
+                <!-- KOLOM KANAN (RATA-RATA HADIR + PIE CHART) -->
+                <div style="flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 16px;">
+                    
+                    <!-- KPI Rata-rata Hadir (Lebar Mengikuti Pie Chart) -->
+                    <div class="card" style="text-align: center; margin: 0; padding: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 1px solid #e5e7eb; border-radius: 8px; background: #ffffff; width: 100%;">
+                        <span style="font-size: 24px;">📈</span>
+                        <h4 style="color: #6b7280; font-size: 12px; font-weight: 500; margin: 6px 0 2px 0; text-transform: uppercase; letter-spacing: 0.5px;">Rata-rata Hadir</h4>
+                        <p id="dash-persen-hadir" style="font-size: 26px; font-weight: bold; color: #059669; margin: 0;">0%</p>
+                    </div>
+
+                    <!-- Diagram Lingkaran (Pie Chart) -->
+                    <div class="card" style="flex: 1; padding: 20px 16px 16px 16px; margin: 0; border: 1px solid #e5e7eb; border-radius: 8px; background: #ffffff; text-align: center; display: flex; flex-direction: column; justify-content: space-between;">
+                        <h4 style="font-size: 12px; font-weight: bold; color: #4b5563; text-transform: uppercase; margin: 0 0 20px 0; text-align: center; letter-spacing: 0.5px;">Proporsi Total Kehadiran</h4>
+                        
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 180px; gap: 14px; margin-bottom: 8px;">
+                            <!-- Lingkaran Grafik -->
+                            <!-- Carian elemen ini di index.html dan ganti menjadi seperti ini -->
+                        <div id="dash-pie-chart" style="width: 125px; height: 125px; border-radius: 50%; background: conic-gradient(#e5e7eb 0% 100%); transition: background 0.4s ease; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center;">
+                        <!-- SUNTIKKAN ELEMEN SPAN INI DI DALAMNYA -->
+                        <span id="dash-pie-text" style="font-size: 16px; font-weight: bold; color: #111827; background: #ffffff; width: 65px; height: 65px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">0%</span>
+                        </div>
+
+                            
+                            <!-- Legenda/Keterangan Warna -->
+                            <div style="display: flex; gap: 14px; font-size: 11px; font-weight: 600; margin: 0;">
+                                <div style="display: flex; align-items: center; gap: 5px;"><div style="width:10px;height:10px;background:#059669;border-radius:2px;"></div> Hadir</div>
+                                <div style="display: flex; align-items: center; gap: 5px;"><div style="width:10px;height:10px;background:#e5e7eb;border-radius:2px;"></div> Absen</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- === ACTION BUTTONS: TOMBOL CETAK & EXCEL (TATA LETAK RAPI DI BAWAH) === -->
+            <div style="display: flex; gap: 12px; justify-content: center; align-items: center; width: 100%; padding-top: 16px; border-top: 1px solid #f3f4f6; clear: both;">
+                <button onclick="cetakHalamanDashboardMurni()" class="btn-primary" style="background: #ea580c; width: auto; font-size: 13px; padding: 11px 20px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; border-radius: 6px; border: none; cursor: pointer; color: white;">
+                    🖨️ Cetak / Simpan Laporan (PDF)
+                </button>
+                <button onclick="exportKeCSV()" class="btn-primary" style="background: #16a34a; width: auto; font-size: 13px; padding: 11px 20px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; border-radius: 6px; border: none; cursor: pointer; color: white;">
+                    📊 Rekap Absen (Excel/CSV)
+                </button>
+            </div>
+        </main>
+
+        <!-- === VIEW: ISI JURNAL HARI INI (Fitur 6 & 11) === -->
+        <main id="view-isiJurnal" class="view-section card">
+            <h2 id="jurnal-form-title" style="font-size: 16px; font-weight: bold; border-bottom: 1px solid #f3f4f6; padding-bottom: 8px; margin-bottom: 16px;">Input Jurnal Kelas Baru</h2>
+            <form onsubmit="simpanJurnal(event)">
+                <input type="hidden" id="jurnal-id">
+                <div class="form-group">
+                    <label>Target Kelas Pengajaran</label>
+                    <div id="box-select-kelas-admin" style="display: none;">
+                        <select id="jurnal-kelas-admin" onchange="sinkronisasiDropdownMateriInput()" class="input-control" style="background: white;"></select>
+                    </div>
+                    <input type="text" id="jurnal-kelas-guru" readonly class="input-control" style="background: #f3f4f6; color: #4b5563;">
+                </div>
+                <div class="form-group">
+                    <label>Tanggal Pelaksanaan</label>
+                    <input type="date" id="jurnal-tanggal" required class="input-control">
+                </div>
+                <div class="form-group">
+                    <label>Materi Pokok Kurikulum</label>
+                    <select id="jurnal-materi" required class="input-control" style="background: white;">
+                        <option value="">-- Pilih Materi Dari Database Kurikulum --</option>
+                    </select>
+                    <p style="font-size: 11px; color: #6b7280; margin-top: 4px;">*Daftar materi dikelola terpusat melalui menu "Materi" di navigasi bawah.</p>
+                </div>
+                <div class="form-group">
+                    <label>Jumlah Kehadiran Murid (Global)</label>
+                    <input type="number" id="jurnal-kehadiran" required min="0" class="input-control" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Catatan Hambatan Mengajar (Opsional)</label>
+                    <input type="text" id="jurnal-catatan" class="input-control" placeholder="Contoh: Kondisi hujan lebat">
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn-primary" style="flex: 1;">Simpan Jurnal</button>
+                    <button type="button" onclick="gantiMenu('riwayat')" class="btn-secondary">Batal</button>
+                </div>
+            </form>
+
+                                <!-- === TAMBAHAN BARU: WADAH LIST JURNAL DI BAWAH FORM INPUT (Fitur 4) === -->
+                    <div style="margin-top: 24px; border-top: 2px dashed #e5e7eb; padding-top: 16px;">
+                        <h4 style="font-size: 13px; font-weight: bold; color: #374151; margin-bottom: 12px; text-transform: uppercase; text-align: center; background: #f3f4f6; padding: 6px; border-radius: 6px;">
+                            📋 Riwayat Jurnal Kelas Yang Sudah Diinput
+                        </h4>
+                          <!-- === NEW: BOX FILTER KELAS MANDIRI DI HALAMAN RIWAYAT JURNAL (no-print) === -->
+        <div id="filter-jurnal-page-box" class="card no-print" style="display: none; padding: 12px; margin-bottom: 14px; background: #f9fafb; border: 1px solid #e5e7eb;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label style="font-size: 11px; font-weight: bold; color: #4b5563; display: block; margin-bottom: 4px;">FILTER RIWAYAT PER KELAS</label>
+                <select id="filter-jurnal-page-kelas" onchange="renderRiwayat()" class="input-control" style="background: white; padding: 6px 10px; font-size: 13px;">
+                    <!-- Opsi pilihan 8 kelas akan disuntikkan otomatis lewat JavaScript -->
+                </select>
+            </div>
+        </div>
+                        
+                        <!-- Penampung List Jurnal Khusus Menu Input Jurnal -->
+                        <div id="list-jurnal-input-menu-container" class="space-y-4">
+                            <!-- Daftar jurnal akan otomatis disuntikkan secara live via JS -->
+                        </div>
+                    </div>
+
+
+
+        </main>
+
+        <!-- === VIEW: RIWAYAT DATA LOG JURNAL (Fitur 6) === -->
+        <main id="view-riwayat" class="view-section">
+            <div class="card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <h2 style="font-size: 16px; font-weight: bold;">Riwayat Log Pengajaran</h2>
+                    <p style="color: #6b7280; font-size: 12px;">Rekam data yang telah diverifikasi masuk sistem browser.</p>
+                </div>
+                <button onclick="exportKeCSV()" class="btn-primary" style="width: auto; padding: 8px 16px; font-size: 13px; background: #059669;">📊 Export CSV</button>
+            </div>
+            
+            <div id="filter-admin-box" class="card" style="display: none; align-items: center; gap: 10px;">
+                <span style="font-size: 12px; font-weight: bold; color: #6b7280;">FILTER KELAS:</span>
+                <select id="filter-admin-kelas" onchange="renderRiwayat()" class="input-control" style="background: white; flex: 1; padding: 6px 12px; font-size: 14px;"></select>
+            </div>
+
+            <div id="list-jurnal-container" style="display: grid; gap: 12px;"></div>
+        </main>
+
+        <!-- === VIEW: HAK MATERI / CETAK MASSAL KURIKULUM (Fitur 11) === -->
+ <!-- === PEMBARUAN MENU TARGET: KINI MEMILIKI MODUL PENCAPAIAN PER SISWA (Fitur 11 & 14) === -->
+        <main id="view-target" class="view-section space-y-6" style="display: none;">
+            
+            <!-- Menu Switcher Tab Internal -->
+            <div style="display: flex; background: #e5e7eb; padding: 4px; border-radius: 10px; gap: 4px;">
+                <button onclick="toggleTabMateri('master')" id="tab-btn-master" style="flex:1; padding:8px; border-radius:8px; border:none; font-size:13px; font-weight:bold; cursor:pointer; background:white; color:#111827;">📋 Kurikulum Global</button>
+                <button onclick="toggleTabMateri('siswa')" id="tab-btn-siswa" style="flex:1; padding:8px; border-radius:8px; border:none; font-size:13px; font-weight:bold; cursor:pointer; background:none; color:#6b7280;">🎯 Capaian Per Siswa</button>
+            </div>
+
+            <!-- SUBSIDIARY TAB 1: KELOLA MASTER MATRIKS (KODE LAMA FITUR 11) -->
+            <div id="sub-tab-master-materi" class="space-y-4">
+                <div class="card">
+                    <h2 style="font-size: 15px; font-weight: bold; margin-bottom: 12px;">Tambah Materi Kurikulum (Satuan)</h2>
+                    <div style="display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap;">
+                        <div class="form-group" style="flex: 1; margin-bottom: 0; min-width: 120px;">
+                            <label>Target Kelas</label>
+                            <select id="materi-input-kelas" class="input-control" style="background: white;"></select>
+                        </div>
+                        <div class="form-group" style="flex: 2; margin-bottom: 0; min-width: 180px;">
+                            <label>Nama/Isi Materi Kurikulum</label>
+                            <input type="text" id="materi-input-nama" class="input-control" placeholder="Contoh: Surat Al-Inshirah">
+                        </div>
+                        <button onclick="tambahMateriSatuan()" class="btn-success" style="height: 40px;">+ Tambah</button>
+                    </div>
+                </div>
+
+                <div class="card" style="background: #f0f9ff; border: 1px dashed #bae6fd;">
+                    <h2 style="font-size: 15px; font-weight: bold; color: #0369a1; margin-bottom: 4px;">Impor Massal Daftar Materi</h2>
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <select id="materi-import-kelas" class="input-control" style="background: white; max-width: 150px;"></select>
+                        <div class="file-upload-wrapper">
+                            <button class="btn-primary" style="background: #0284c7; font-size: 13px; padding: 10px 14px;">📁 Unggah Materi (.csv)</button>
+                            <input type="file" id="file-materi-excel" accept=".csv" onchange="imporMateriMassal(event)">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="padding: 0; overflow: hidden;">
+                    <div style="padding: 10px 16px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="font-size: 12px; font-weight: bold; color: #4b5563;">MONITORING MASTER MATERI</h3>
+                        <select id="filter-materi-tampilan" onchange="renderDaftarMateriMaster()" class="input-control" style="background: white; max-width: 140px; padding: 4px 6px; font-size: 12px;"></select>
+                    </div>
+                    <div class="materi-list-box">
+                        <table>
+                            <tbody id="table-materi-rows"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUBSIDIARY TAB 2: LEMBAR CHECKLIST CAPAIAN INDIVIDU SANTRI (NEW FITUR 14) -->
+                        <!-- === PEMBARUAN: SUBSIDIARY TAB 2 - DIGITAL RAPORT & CHECKLIST TARGET (Fitur 14 Final) === -->
+                        <!-- === STRUKTUR TOTAL: TABEL RAPORT RESMI SEMESTER (Fitur 14 Final) === -->
+                        <!-- SUNTIKKAN KODE INI: Menambahkan ID area agar dibaca sempurna oleh fungsi print baru -->
+                        <!-- === REVISI FINAL TAB 2: PROGRES CAPAIAN KURIKULUM & PERSENTASE (Fitur 14) === -->
+            <div id="sub-tab-siswa-materi" class="space-y-4" style="display: none;">
+                <div class="card">
+                    <h2 style="font-size: 15px; font-weight: bold; margin-bottom: 12px; border-bottom: 1px solid #f3f4f6; padding-bottom: 4px;">Pencapaian Materi Target Santri</h2>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Pilih Kelas</label>
+                            <select id="target-siswa-kelas" onchange="muatDaftarSiswaTargetDropdown()" class="input-control" style="background: white;"></select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Pilih Nama Santri</label>
+                            <select id="target-siswa-nama" onchange="muatLembarMatriksChecklistSiswa()" class="input-control" style="background: white;">
+                                <option value="">-- Pilih Santri --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Indikator Resume Persentase Kelulusan Materi -->
+                    <div id="box-resume-persen-target" style="display: none; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 14px;">
+                        <span style="font-size: 12px; font-weight: bold; color: #166534; display: block; text-transform: uppercase;">Persentase Kelulusan Target Kurikulum</span>
+                        <p id="target-persen-kelulusan-teks" style="font-size: 24px; font-weight: bold; color: #166534; margin-top: 4px;">0%</p>
+                        <span style="font-size: 11px; color: #166534;" id="target-hitungan-materi-teks">(0 dari 0 Materi Tuntas)</span>
+                    </div>
+
+                    <!-- Lembar Checklist Progres Materi -->
+                    <div style="margin-top: 10px;">
+                        <h4 style="font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px;">Daftar Ketercapaian Materi:</h4>
+                        <div id="lembar-checklist-materi-murid" style="max-height: 250px; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; background: #f9fafb;">
+                            <p style="text-align: center; color: #9ca3af; font-size: 13px; padding: 10px;">Silakan tentukan nama santri terlebih dahulu untuk memuat matriks target.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+        </main>
+
+        <!-- === VIEW: KELOLA AKUN USTADZ/USTADZAH (Fitur 5 - EXCLUSIVE ADMIN) === -->
+        <main id="view-kelolaAkun" class="view-section" style="display: none;">
+            <div class="card">
+                <h2 id="akun-form-title" style="font-size: 16px; font-weight: bold; margin-bottom: 14px;">Tambahkan Akun Pengajar Baru</h2>
+                <form onsubmit="simpanAkun(event)">
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 10px;">
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label>Username</label>
+                            <input type="text" id="akun-username" required class="input-control" placeholder="username_guru">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label>Password <span id="hint-pass" style="font-weight: normal; color: #9ca3af; font-size: 11px;"></span></label>
+                            <input type="password" id="akun-password" class="input-control" placeholder="••••••••">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 14px;">
+                            <label>Penempatan Otoritas Kelas</label>
+                            <select id="akun-kelas" required class="input-control" style="background: white;"></select>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="submit" class="btn-primary" style="width: auto; padding: 10px 20px;">Simpan Akun Pengajar</button>
+                        <button type="button" id="btn-batal-akun" onclick="resetAkunForm()" class="btn-secondary" style="display: none;">Batal</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card" style="padding: 0; overflow: hidden;">
+                <div style="padding: 12px 16px; background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
+                    <h3 style="font-size: 12px; font-weight: bold; color: #4b5563; text-transform: uppercase;">Daftar Guru Terdaftar</h3>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Otoritas Ruang Kelas</th>
+                                <th style="text-align: center;">Tindakan Master</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-user-rows"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+   <!-- === NEW: TAMPILAN MODUL PRESENSI SISWA (Fitur 12) === -->
+        <main id="view-presensi" class="view-section space-y-6" style="display: none;">			
+            <!-- Form Input Presensi Harian -->
+            <div class="card">
+                <h2 id="presensi-form-title" style="font-size: 16px; font-weight: bold; margin-bottom: 12px; border-bottom: 1px solid #f3f4f6; padding-bottom: 6px;">Input Presensi Santri Baru</h2>
+                <form onsubmit="simpanPresensiMassal(event)">
+                    <input type="hidden" id="presensi-id-edit">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Kelas Absensi</label>
+                            <div id="presensi-box-kelas-admin" style="display: none;">
+                                <select id="presensi-kelas-admin" onchange="muatDaftarSiswaAbsen()" class="input-control" style="background: white;"></select>
+                            </div>
+                            <input type="text" id="presensi-kelas-guru" readonly class="input-control" style="background: #f3f4f6; color: #4b5563;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Tanggal Absen</label>
+                            <input type="date" id="presensi-tanggal" required class="input-control">
+                        </div>
+                    </div>
+
+                    <!-- Lembar Checklist Nama Siswa (Dinamis via JS) -->
+                    <div style="margin-top: 14px; margin-bottom: 16px;">
+                        <label style="display: block; font-size: 14px; font-weight: 600; color: #4b5563; margin-bottom: 6px;">Daftar Hadir Murid:</label>
+                        <div id="lembar-absen-murid" style="max-height: 250px; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px; background: #f9fafb;">
+                            <p style="text-align: center; color: #9ca3af; font-size: 13px; padding: 10px;">Silakan pilih kelas terlebih dahulu untuk memuat daftar nama santri.</p>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit" class="btn-primary" style="flex: 1;">Simpan Presensi</button>
+                        <button type="button" id="btn-batal-presensi" onclick="resetFormPresensi()" class="btn-secondary" style="display: none;">Batal Edit</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tabel Riwayat Log Presensi yang Sudah Diinput -->
+            <div class="card" style="padding: 0; overflow: hidden;">
+                <div style="padding: 12px 16px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                    <h3 style="font-size: 12px; font-weight: bold; color: #4b5563; text-transform: uppercase;">Log Riwayat Presensi</h3>
+                    <select id="filter-presensi-tampilan" onchange="renderRiwayatPresensi()" class="input-control" style="background: white; max-width: 150px; padding: 4px 8px; font-size: 12px;"></select>
+                </div>
+                <div style="overflow-x: auto; max-height: 300px;">
+                    <table>
+                        <thead>
+                            <tr style="background: #f3f4f6;">
+                                <th>Tanggal & Kelas</th>
+                                <th>Nama Santri (Kelompok)</th>
+                                <th>Status</th>
+                                <th style="text-align: center; width: 100px;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-presensi-rows">
+                            <tr><td colspan="4" style="text-align: center; color: #9ca3af; padding: 20px;">Belum ada data presensi terinput.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+		
+		<!-- === NEW: TAMPILAN MODUL KELOLA DATA SISWA (Fitur 13) === -->
+        <main id="view-siswa" class="view-section space-y-6" style="display: none;">
+            
+            <!-- Form Input Siswa Satu per Satu -->
+            <div class="card">
+                <h2 id="siswa-form-title" style="font-size: 16px; font-weight: bold; margin-bottom: 12px; border-bottom: 1px solid #f3f4f6; padding-bottom: 6px;">Tambah Data Siswa (Satuan)</h2>
+                <form onsubmit="simpanSiswaSatuan(event)">
+                    <input type="hidden" id="siswa-id-edit">
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 10px;">
+                        <div class="form-group" style="margin-bottom: 8px;">
+                            <label>Nama Lengkap Santri</label>
+                            <input type="text" id="siswa-input-nama" required class="input-control" placeholder="Masukkan nama lengkap anak">
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Penempatan Kelas</label>
+                                <select id="siswa-input-kelas" required class="input-control" style="background: white;"></select>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Nama Kelompok Mengaji</label>
+                                <input type="text" id="siswa-input-kelompok" required class="input-control" placeholder="Contoh: Ummi 2 / Iqro">
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="submit" class="btn-primary" style="width: auto; padding: 10px 24px;">Simpan Siswa</button>
+                        <button type="button" id="btn-batal-siswa" onclick="resetFormSiswa()" class="btn-secondary" style="display: none;">Batal</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Form Impor Massal Siswa via CSV/Excel -->
+            <div class="card" style="background: #f0fdf4; border: 1px dashed #bbf7d0;">
+                <h2 style="font-size: 16px; font-weight: bold; color: #166534; margin-bottom: 6px;">Impor Massal Data Siswa (Excel/CSV)</h2>
+                <p style="font-size: 12px; color: #166534; margin-bottom: 12px;">Unggah berkas .csv dengan susunan kolom di baris pertama wajib bernama: <strong>nama, kelas, kelompok</strong>.</p>
+                <div class="file-upload-wrapper">
+                    <button class="btn-primary" style="background: #16a34a; font-size: 14px; padding: 10px 20px;">📁 Pilih File Daftar Siswa</button>
+                    <input type="file" id="file-siswa-excel" accept=".csv" onchange="imporSiswaMassal(event)">
+                </div>
+            </div>
+
+            <!-- Tabel Monitoring Database Siswa Terdaftar -->
+            <div class="card" style="padding: 0; overflow: hidden;">
+                <div style="padding: 12px 16px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="font-size: 12px; font-weight: bold; color: #4b5563; text-transform: uppercase;">Database Santri Terdaftar</h3>
+                    <select id="filter-siswa-tampilan" onchange="renderTabelSiswaMaster()" class="input-control" style="background: white; max-width: 150px; padding: 4px 8px; font-size: 12px;"></select>
+                </div>
+                <div style="overflow-x: auto; max-height: 300px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nama Santri</th>
+                                <th>Kelas & Kelompok</th>
+                                <th style="text-align: center; width: 120px;">Aksi Kelola</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-siswa-rows">
+                            <tr><td colspan="3" style="text-align:center; color:#9ca3af; padding:20px;">Belum ada data siswa terdaftar.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+                <!-- === NEW MODULE: LAYAR MANAJEMEN PENILAIAN UJIAN 9 SUBJEK (MENU BARU) === -->
+        <main id="view-penilaian" class="view-section space-y-6" style="display: none;">
+            <div class="card">
+                <h2 style="font-size: 16px; font-weight: bold; margin-bottom: 12px; border-bottom: 1px solid #f3f4f6; padding-bottom: 6px;">Input Nilai Ujian Santri</h2>
+                
+                <!-- Kontrol Pilihan Siswa & Jenis Pengambilan Nilai -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Pilih Kelas</label>
+                        <select id="penilaian-kelas" onchange="muatSiswaPenilaianDropdown()" class="input-control" style="background: white;"></select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Nama Santri</label>
+                        <select id="penilaian-siswa" onchange="muatFormNilaiUjianEksis()" class="input-control" style="background: white;">
+                            <option value="">-- Pilih Santri --</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label>Jenis Pengambilan Nilai</label>
+                    <select id="penilaian-jenis" onchange="muatFormNilaiUjianEksis()" class="input-control" style="background: white;">
+                        <option value="Nilai 1">Nilai Harian 1</option>
+                        <option value="Nilai 2">Nilai Harian 2</option>
+                        <option value="PTS">Penilaian Tengah Semester (PTS)</option>
+                        <option value="PAS">Penilaian Akhir Semester (PAS)</option>
+                    </select>
+                </div>
+
+                <!-- Form Lembar Pengisian 9 Subjek Materi Keagamaan -->
+                <div id="box-form-sembilan-subjek" style="display: none; border-top: 1px solid #e5e7eb; padding-top: 12px;">
+                    <h4 style="font-size: 13px; font-weight: bold; color: #374151; margin-bottom: 12px; text-transform: uppercase; text-align: center; background: #f3f4f6; padding: 6px; border-radius: 6px;">Matriks Nilai Subjek Pengajaran (Skala 0-100)</h4>
+                    <form onsubmit="simpanNilaiUjianMassal(event)" class="space-y-4">
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 12px; max-height: 280px; overflow-y: auto; padding-right: 4px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb;">
+                                <label style="font-size: 13px; font-weight: 600; color: #4b5563;">1. Tilawah / Bacaan</label>
+                                <input type="number" id="subjek-tilawah" min="0" max="100" required class="input-control" style="width: 70px; text-align: center; padding: 4px;">
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb;">
+                                <label style="font-size: 13px; font-weight: 600; color: #4b5563;">2. Tahsinul Kitabah</label>
+                                <input type="number" id="subjek-kitabah" min="0" max="100" required class="input-control" style="width: 70px; text-align: center; padding: 4px;">
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb;">
+                                <label style="font-size: 13px; font-weight: 600; color: #4b5563;">3. Hafalan Surat</label>
+                                <input type="number" id="subjek-surat" min="0" max="100" required class="input-control" style="width: 70px; text-align: center; padding: 4px;">
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb;">
+                                <label style="font-size: 13px; font-weight: 600; color: #4b5563;">4. Hafalan Doa</label>
+                                <input type="number" id="subjek-doa" min="0" max="100" required class="input-control" style="width: 70px; text-align: center; padding: 4px;">
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb;">
+                                <label style="font-size: 13px; font-weight: 600; color: #4b5563;">5. Ilmu Tajwid</label>
+                                <input type="number" id="subjek-tajwid" min="0" max="100" required class="input-control" style="width: 70px; text-align: center; padding: 4px;">
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb;">
+                                <label style="font-size: 13px; font-weight: 600; color: #4b5563;">6. Praktek Ibadah</label>
+                                <input type="number" id="subjek-ibadah" min="0" max="100" required class="input-control" style="width: 70px; text-align: center; padding: 4px;">
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb;">
+                                <label style="font-size: 13px; font-weight: 600; color: #4b5563;">7. Dinul Islam</label>
+                                <input type="number" id="subjek-dinul" min="0" max="100" required class="input-control" style="width: 70px; text-align: center; padding: 4px;">
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb;">
+                                <label style="font-size: 13px; font-weight: 600; color: #4b5563;">8. Adab Harian</label>
+                                <input type="number" id="subjek-adab" min="0" max="100" required class="input-control" style="width: 70px; text-align: center; padding: 4px;">
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb;">
+                                <label style="font-size: 13px; font-weight: 600; color: #4b5563;">9. Asmaul Husna</label>
+                                <input type="number" id="subjek-asmaul" min="0" max="100" required class="input-control" style="width: 70px; text-align: center; padding: 4px;">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary" style="width: 100%; margin-top: 10px; background: #059669;">💾 Simpan Nilai Ujian</button>
+                    </form>
+                </div>
+            </div>
+        </main>
+
+                <!-- === NEW MODULE: LAYAR RAPORT AKHIR GENAP SIAP CETAK (MENU KE-7) === -->
+               <!-- === STRUKTUR UTUH & BENAR: LAYAR RAPORT AKHIR GENAP (MENU KE-6 ANTI-BLANK) === -->
+                <!-- === STRUKTUR TOTAL DOKUMEN RAPORT AKHIR SEMESTER (Fitur 15 UTUH & RAPI) === -->
+        <main id="view-raportFinal" class="view-section space-y-6" style="display: none;">
+            <div class="card bg-white" style="padding: 16px;">
+                
+                <!-- Dropdown Kontrol Atas (Pilihan Kelas & Nama Santri) -->
+                <div class="no-print" style="border-bottom: 1px dashed #e5e7eb; padding-bottom: 12px; margin-bottom: 16px;">
+                    <h2 style="font-size: 15px; font-weight: bold; margin-bottom: 10px; color: #1f2937;">Cetak Raport Akhir Semester</h2>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 11px; font-weight: bold; color: #4b5563; display: block; margin-bottom: 4px;">PILIH KELAS</label>
+                            <select id="raportf-kelas" onchange="muatSiswaRaportfDropdown()" class="input-control" style="background: white; padding: 6px 10px; font-size: 13px; width: 100%; box-sizing: border-box;"></select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 11px; font-weight: bold; color: #4b5563; display: block; margin-bottom: 4px;">PILIH NAMA SANTRI</label>
+                            <select id="raportf-siswa" onchange="prosesKalkulasiRaportFinal()" class="input-control" style="background: white; padding: 6px 10px; font-size: 13px; width: 100%; box-sizing: border-box;">
+                                <option value="">-- Pilih Santri --</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AREA DOKUMEN UTAMA (Akan otomatis terbuka tampil setelah nama santri dipilih) -->
+                <div id="area-dokumen-raport-resmi" style="display: none; font-family: 'Times New Roman', Times, serif; color: #000000; padding: 10px;">
+                    
+                    <!-- Title Atas Tengah -->
+                    <div style="text-align: center; margin-bottom: 24px; line-height: 1.3;">
+                        <h3 style="font-size: 16px; font-weight: bold; margin: 0;">RAPOR HASIL BELAJAR TPQ BAITUSSALAM HUDA MANSURIN</h3>
+                        <h4 style="font-size: 14px; font-weight: bold; margin: 4px 0 0 0;">SEMESTER/TAHUN AJARAN : GENAP / 2025-2026</h4>
+                    </div>
+
+                    <!-- Identitas Rata Kiri -->
+                    <div style="font-size: 13px; font-weight: bold; margin-bottom: 16px; line-height: 1.5; text-transform: uppercase;">
+                        <table style="width: auto; border: none !important; margin: 0;">
+                            <tr style="border: none !important;"><td style="border: none !important; padding: 2px 0; width: 110px; font-weight: bold;">KELAS</td><td style="border: none !important; padding: 2px 8px; font-weight: bold;">:</td><td style="border: none !important; padding: 2px 0; font-weight: bold;" id="rf-teks-kelas">-</td></tr>
+                            <tr style="border: none !important;"><td style="border: none !important; padding: 2px 0; width: 110px; font-weight: bold;">NAMA SISWA/I</td><td style="border: none !important; padding: 2px 8px; font-weight: bold;">:</td><td style="border: none !important; padding: 2px 0; font-weight: bold; text-decoration: underline;" id="rf-teks-siswa">-</td></tr>
+                        </table>
+                    </div>
+
+                    <!-- Tabel Utama 5 Kolom -->
+                    <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 16px; background: white;">
+                        <thead>
+                            <tr style="background: #ffffff; font-weight: bold; text-align: center;">
+                                <th style="border: 1px solid #000000; width: 40px; padding: 8px;">NO.</th>
+                                <th style="border: 1px solid #000000; text-align: left; padding: 8px;">PAKET PENGAJARAN</th>
+                                <th style="border: 1px solid #000000; width: 70px; padding: 8px;">ANGKA</th>
+                                <th style="border: 1px solid #000000; width: 80px; padding: 8px;">PREDIKAT</th>
+                                <th style="border: 1px solid #000000; padding: 8px;">DESKRIPSI</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-raportf-body-rows">
+                            <!-- Baris materi diisi dinamis via JavaScript -->
+                        </tbody>
+                    </table>
+
+                    <!-- Boks Keterangan Predikat & Absensi Bawah Dokumen Raport -->
+                    <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; font-size: 11px; font-family: sans-serif; margin-top: 16px; padding-top: 12px;">
+                        <div>
+                            <span style="font-weight: bold; display: block; margin-bottom: 4px; font-size: 12px;">PREDIKAT NILAI :</span>
+                            <div style="color: #374151; line-height: 1.5;">
+                                91-100 : A | SANGAT BAIK<br>
+                                81-90 &nbsp;: B | BAIK<br>
+                                71-80 &nbsp;: C | CUKUP<br>
+                                0-70 &nbsp;&nbsp;: D | KURANG
+                            </div>
+                        </div>
+                        <div style="border: 1px solid #000000; padding: 8px; border-radius: 4px; background: #ffffff;">
+                            <span style="font-weight: bold; display: block; margin-bottom: 4px; font-size: 11px; border-bottom: 1px solid #000; padding-bottom: 2px;">REKAPITULASI ABSENSI</span>
+                            Sakit &nbsp;: <strong id="rf-absen-sakit">0</strong> hari<br>
+                            Izin &nbsp;&nbsp;&nbsp;: <strong id="rf-absen-izin">0</strong> hari<br>
+                            Alpha : <strong id="rf-absen-alpa">0</strong> hari<br>
+                            <span style="font-size: 10px; color: #4b5563; font-style: italic; display: block; margin-top: 4px; border-top: 1px dashed #e5e7eb; padding-top: 2px;" id="rf-total-kbm">Total KBM: 0 Hari</span>
+                        </div>
+                    </div>
+
+                    <!-- Tombol Cetak Dokumen -->
+                    <div class="no-print" style="display: flex; justify-content: center; margin-top: 24px; border-top: 1px dashed #e5e7eb; padding-top: 16px;">
+                        <button type="button" onclick="window.print()" class="btn-primary" style="background: #ea580c; width: auto; font-size: 13px; padding: 10px 24px; font-family: sans-serif; font-weight: bold; border-radius: 6px;">🖨️ Cetak / Simpan Raport PDF</button>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+
+
+
+         <!-- === NAVIGASI BOTTOM BAR DI-UPDATE (Fitur 12) === -->
+       <!-- === NAVIGASI BOTTOM BAR DI-UPDATE (Fitur 13) === -->
+                <!-- === NAVIGASI BOTTOM BAR RESMI 6 MENU (MURNI HTML) === -->
+                <!-- === BOTTOM NAVIGATION BAR TERBARU (7 MENU LENGKAP) === -->
+                <!-- === BOTTOM NAVIGATION BAR TERBARU LENGKAP (8 MENU ANTI-HILANG) === -->
+        <nav class="bottom-nav" style="gap: 1px; padding: 6px 2px;">
+            <button id="nav-dashboard" onclick="gantiMenu('dashboard')" class="nav-item" style="font-size: 9px; flex: 1; padding: 4px 0;"><span>📊</span>Dash</button>
+            <button id="nav-isiJurnal" onclick="bukaIsiJurnalBaru()" class="nav-item" style="font-size: 9px; flex: 1; padding: 4px 0;"><span>📝</span>Jurnal</button>
+            <button id="nav-presensi" onclick="bukaMenuPresensiBaru()" class="nav-item" style="font-size: 9px; flex: 1; padding: 4px 0;"><span>📋</span>Absen</button>
+            <button id="nav-siswa" onclick="gantiMenu('siswa')" class="nav-item" style="font-size: 9px; flex: 1; padding: 4px 0;"><span>👥</span>Siswa</button>
+            <button id="nav-penilaian" onclick="gantiMenu('penilaian')" class="nav-item" style="font-size: 9px; flex: 1; padding: 4px 0;"><span>⭐</span>Nilai</button>
+            <button id="nav-raportFinal" onclick="gantiMenu('raportFinal')" class="nav-item" style="font-size: 9px; flex: 1; padding: 4px 0;"><span>📜</span>Raport</button>
+            <button id="nav-target" onclick="gantiMenu('target')" class="nav-item" style="font-size: 9px; flex: 1; padding: 4px 0;"><span>🎯</span>Target</button>
+            <!-- Menu Kelola Akun: Diberikan ID khusus agar bisa diatur muncul/sembunyi otomatis via JS -->
+            <button id="nav-kelolaAkun" onclick="gantiMenu('kelolaAkun')" class="nav-item" style="font-size: 9px; flex: 1; padding: 4px 0; display: none;"><span>⚙️</span>Akun</button>
+        </nav>
+
+
+
+    </div>
+
+    <!-- PENGHUBUNG LOGIKA LOGIKA CORE CORE BACK-END ENGINE -->
+    <script src="backend.js"></script>
+
+    <!-- SUNTIKKAN SCRIPT MANDIRI INI DI PALING BAWAH FILE INDEX.HTML (DI ATAS TARUTAN ID </body>) -->
+<script>
+function muatSiswaRaportfDropdown() {
+    var klsSelect = document.getElementById('raportf-kelas');
+    var siswaSelect = document.getElementById('raportf-siswa');
+    if (!klsSelect || !siswaSelect) return;
+
+    var klsAktif = klsSelect.value;
+    if (!klsAktif || klsAktif === "") { 
+        siswaSelect.innerHTML = '<option value="">-- Pilih Santri --</option>'; 
+        var areaDokumen = document.getElementById('area-dokumen-raport-resmi');
+        if (areaDokumen) areaDokumen.style.display = 'none';
+        return; 
+    }
+
+    // Ambil database langsung dari localStorage secara mandiri
+    var dbSiswaLokal = JSON.parse(localStorage.getItem('tpq_siswa')) || [];
+
+    // Filter siswa berdasarkan kelas yang aktif dipilih
+    var muridTerfilter = dbSiswaLokal.filter(function(x) {
+        if (!x.kelas) return false;
+        return x.kelas.toString().trim().toLowerCase() === klsAktif.toString().trim().toLowerCase();
+    });
+
+    // Urutkan abjad A-Z
+    muridTerfilter.sort(function(a, b) {
+        return a.nama.localeCompare(b.nama);
+    });
+
+    // Render ke dropdown siswa
+    var html = '<option value="">-- Pilih Santri --</option>';
+    if (muridTerfilter.length === 0) {
+        html += '<option value="" disabled>-- Tidak ada siswa di kelas ini --</option>';
+    } else {
+        muridTerfilter.forEach(function(m) {
+            html += '<option value="' + m.id + '">' + m.nama.toUpperCase() + '</option>'; 
+        });
+    }
+    
+    siswaSelect.innerHTML = html;
+    
+    var areaDokumen = document.getElementById('area-dokumen-raport-resmi');
+    if (areaDokumen) areaDokumen.style.display = 'none';
+}
+
+// Daftarkan ke global window secara paksa
+window.muatSiswaRaportfDropdown = muatSiswaRaportfDropdown;
+</script>
+<!-- GANTI KODE DI ATAS TAG </body> DENGAN INI -->
+<script>
+(function() {
+    function pastikanTombolLogoutMuncul() {
+        // 1. Ambil status view halaman saat ini dari variabel aplikasi Anda
+        var viewAktif = window.currentView || (typeof currentView !== 'undefined' ? currentView : '');
+
+        // 2. Jika user sedang di halaman login, hapus tombol darurat jika ada, lalu hentikan fungsi
+        if (viewAktif === 'login' || document.getElementById('view-login')?.style.display === 'flex' || document.getElementById('view-login')?.style.display === 'block') {
+            var tombolEksis = document.getElementById('tombol-logout-darurat-utama');
+            if (tombolEksis) {
+                tombolEksis.remove();
+            }
+            return;
+        }
+
+        // 3. Jika sudah ada di halaman dalam dan tombol sudah terbit, tidak perlu buat lagi
+        if (document.getElementById('tombol-logout-darurat-utama')) return;
+
+        // 4. Buat elemen tombol keluar baru
+        var tombolBaru = document.createElement('button');
+        tombolBaru.id = 'tombol-logout-darurat-utama';
+        tombolBaru.innerHTML = 'Keluar 🚪';
+        
+        var gayaCss = 'position: fixed !important; ' +
+                      'top: 15px !important; ' +
+                      'right: 15px !important; ' +
+                      'background-color: #fee2e2 !important; ' +
+                      'color: #dc2626 !important; ' +
+                      'border: 1px solid #fecaca !important; ' +
+                      'padding: 8px 14px !important; ' +
+                      'border-radius: 6px !important; ' +
+                      'font-weight: bold !important; ' +
+                      'font-size: 13px !important; ' +
+                      'cursor: pointer !important; ' +
+                      'z-index: 999999999 !important; ' +
+                      'box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important; ' +
+                      'font-family: Arial, sans-serif !important;';
+                      
+        tombolBaru.setAttribute('style', gayaCss);
+
+        // Pemicu aksi logout resmi aplikasi Anda
+        tombolBaru.onclick = function() {
+            if (typeof window.handleLogout === 'function') {
+                window.handleLogout();
+            } else if (typeof handleLogout === 'function') {
+                handleLogout();
+            } else {
+                localStorage.removeItem('tpq_session');
+                location.reload();
+            }
+        };
+
+        tombolBaru.onmouseover = function() { this.style.backgroundColor = '#fca5a5'; };
+        tombolBaru.onmouseout = function() { this.style.backgroundColor = '#fee2e2'; };
+
+        document.body.appendChild(tombolBaru);
+    }
+
+    // Jalankan interval otomatis setiap 500ms untuk sinkronisasi perpindahan halaman secara live
+    setInterval(pastikanTombolLogoutMuncul, 500);
+})();
+</script>
+
+
+
+</body>
+</html>
