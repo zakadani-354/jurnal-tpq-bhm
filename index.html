@@ -125,92 +125,83 @@
 }
 </style>
 
-<!-- SUNTIKKAN TEPAT DI ATAS TAG </head> AGAR DIMUAT DULUAN OLEH BROWSER -->
+<!-- GANTI KODE DI ATAS TAG </body> DENGAN VERSI FIX RUANG PUTIH INI -->
 <script>
-function cetakHalamanDashboardMurni() {
-    // 1. Ambil data filter aktif dari layar dashboard
-    var filterKelasEl = document.getElementById('dash-filter-kelas');
-    var fKelas = filterKelasEl ? filterKelasEl.value : 'SEMUA';
-    
-    var filterBulanEl = document.getElementById('dash-filter-bulan');
-    var fBulan = filterBulanEl ? filterBulanEl.value : 'SEMUA';
+(function() {
+    function pastikanTombolLogoutMuncul() {
+        var viewAktif = window.currentView || (typeof currentView !== 'undefined' ? currentView : '');
+        var loginEl = document.getElementById('view-login');
+        
+        // Cek apakah halaman login sedang aktif/tampil di layar
+        var isHalamanLogin = viewAktif === 'login' || 
+                             (loginEl && (loginEl.style.display === 'flex' || loginEl.style.display === 'block'));
 
-    var filterKelompokEl = document.getElementById('dash-filter-kelompok');
-    var fKelompok = filterKelompokEl ? filterKelompokEl.value : 'SEMUA';
-    
-    // 2. Ambil angka persentase kehadiran untuk membuat diagram lingkaran
-    var persenHadirEl = document.getElementById('dash-persen-hadir');
-    var persenHadirTeks = persenHadirEl ? persenHadirEl.innerText : '0%';
-    var persenAngka = parseInt(persenHadirTeks) || 0;
-    var persenSisa = 100 - persenAngka;
-    
-    // 3. Ambil visual grafik batang dari dashboard
-    var areaGrafik = document.getElementById('grafik-css-container');
-    var isiGrafikHtml = areaGrafik ? areaGrafik.innerHTML : '';
-
-    // 4. Buka jendela popup cetak baru
-    var winDash = window.open('', '_blank', 'width=950,height=750');
-    if (!winDash) {
-        alert("Mohon izinkan sistem Pop-up pada browser Anda agar dokumen cetak bisa terbuka!");
-        return;
-    }
-    
-    // 5. Susun struktur isi dokumen cetak baru
-    var kontenHtml = '<html><head><title>Laporan_Statistik_Dashboard_TPQ</title>' +
-        '<style>' +
-        'body { font-family: Arial, sans-serif; padding: 30px; color: #111827; background: #ffffff; }' +
-        '.header-cetak { text-align: center; border-bottom: 3px double #000000; padding-bottom: 12px; margin-bottom: 25px; }' +
-        '.header-cetak h2 { margin: 0; text-transform: uppercase; font-size: 18px; }' +
-        '.header-cetak p { margin: 5px 0 0 0; color: #4b5563; font-size: 13px; }' +
-        
-        /* Layout Grid untuk menyandingkan dua diagram */
-        '.grid-visual { display: grid; grid-template-columns: 1.2fr 1fr; gap: 30px; margin-top: 20px; }' +
-        '.box-diagram { border: 1px solid #e5e7eb; padding: 20px 20px 40px 20px; border-radius: 8px; background: #ffffff; }' +
-        '.box-judul { font-size: 13px; font-weight: bold; margin-bottom: 20px; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; color: #374151; }' +
-        
-        /* KUNCI UTAMA: Memaksa warna latar belakang/grafik muncul saat di-print */
-        '* { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }' +
-        
-        /* Gaya Layout Diagram Batang */
-        '.wrapper-grafik-batang { display: flex; justify-content: center; gap: 40px; align-items: flex-end; height: 180px; }' +
-        
-        /* Gaya Layout Diagram Lingkaran (Pie Chart CSS) */
-        '.wrapper-pie { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 180px; gap: 15px; }' +
-        '.pie-chart { ' +
-            'width: 120px; height: 120px; border-radius: 50%; ' +
-            'background: conic-gradient(#059669 0% ' + persenAngka + '%, #e5e7eb ' + persenAngka + '% 100%);' +
-        '}' +
-        '.pie-keterangan { font-size: 14px; font-weight: bold; color: #111827; }' +
-        '.pie-legend { display: flex; gap: 15px; font-size: 11px; font-weight: 600; }' +
-        '.legend-item { display: flex; align-items: center; gap: 5px; }' +
-        '</style></head><body>' +
-        
-        '<div class="header-cetak">' +
-        '<h2>Laporan Perkembangan & Statistik Pembelajaran TPQ</h2>' +
-        '<p>Kelas: <strong>' + fKelas + '</strong> | Kelompok: <strong>' + fKelompok + '</strong> | Bulan: <strong>' + fBulan + '</strong></p>' +
-        '</div>' +
-
-        '<div class="grid-visual">' +
-            /* Kolom Kiri: Diagram Batang */
-            '<div class="box-diagram">' +
-                '<div class="box-judul">📊 DIAGRAM GRAFIK PRESENSI HARIAN TERAKHIR:</div>' +
-                '<div class="wrapper-grafik-batang">' + isiGrafikHtml + '</div>' +
-            '</div>' +
+        // 1. JIKA DI HALAMAN LOGIN: Bersihkan tombol dan paksa hilangkan ruang putih bawah
+        if (isHalamanLogin) {
+            var tombolEksis = document.getElementById('tombol-logout-darurat-utama');
+            if (tombolEksis) {
+                tombolEksis.remove();
+            }
             
-            /* Kolom Kanan: Diagram Lingkaran */
-            '<div class="box-diagram">' +
-                '<div class="box-judul">⭕ PERSENTASE TOTAL KEHADIRAN SANTRI:</div>' +
-                '<div class="wrapper-pie">' +
-                    '<div class="pie-chart"></div>' +
-                    '<div class="pie-keterangan">Hadir: ' + persenHadirTeks + '</div>' +
-                    '<div class="pie-legend">' +
-                        '<div class="legend-item"><div style="width:12px;height:12px;background:#059669;border-radius:2px;"></div> Hadir ('+persenAngka+'%)</div>' +
-                        '<div class="legend-item"><div style="width:12px;height:12px;background:#e5e7eb;border-radius:2px;"></div> Absen ('+persenSisa+'%)</div>' +
-                    '</div>' +
-                '</div>' +
-            '</div>' +
-        '</div>' +
+            // PAKSA BODY DAN HTML UNTUK MENGUNCI TINGGI BANNER AGAR TIDAK ADA CELAH PUTIH
+            document.documentElement.style.height = '100%';
+            document.body.style.height = '100%';
+            document.body.style.overflow = 'hidden'; // Menghilangkan scrollbar liar di halaman login
+            return;
+        }
+
+        // 2. JIKA DI HALAMAN DALAM: Kembalikan setelan scrollbar normal aplikasi Anda
+        document.documentElement.style.height = 'auto';
+        document.body.style.height = 'auto';
+        document.body.style.overflow = 'auto';
+
+        // 3. Jika sudah ada tombol di halaman dalam, tidak perlu buat lagi
+        if (document.getElementById('tombol-logout-darurat-utama')) return;
+
+        // 4. Buat elemen tombol keluar darurat baru
+        var tombolBaru = document.createElement('button');
+        tombolBaru.id = 'tombol-logout-darurat-utama';
+        tombolBaru.innerHTML = 'Keluar 🚪';
         
+        var gayaCss = 'position: fixed !important; ' +
+                      'top: 15px !important; ' +
+                      'right: 15px !important; ' +
+                      'background-color: #fee2e2 !important; ' +
+                      'color: #dc2626 !important; ' +
+                      'border: 1px solid #fecaca !important; ' +
+                      'padding: 8px 14px !important; ' +
+                      'border-radius: 6px !important; ' +
+                      'font-weight: bold !important; ' +
+                      'font-size: 13px !important; ' +
+                      'cursor: pointer !important; ' +
+                      'z-index: 999999999 !important; ' +
+                      'box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important; ' +
+                      'font-family: Arial, sans-serif !important;';
+                      
+        tombolBaru.setAttribute('style', gayaCss);
+
+        tombolBaru.onclick = function() {
+            if (typeof window.handleLogout === 'function') {
+                window.handleLogout();
+            } else if (typeof handleLogout === 'function') {
+                handleLogout();
+            } else {
+                localStorage.removeItem('tpq_session');
+                location.reload();
+            }
+        };
+
+        tombolBaru.onmouseover = function() { this.style.backgroundColor = '#fca5a5'; };
+        tombolBaru.onmouseout = function() { this.style.backgroundColor = '#fee2e2'; };
+
+        document.body.appendChild(tombolBaru);
+    }
+
+    // Jalankan sinkronisasi halaman setiap 400ms agar lebih responsif
+    setInterval(pastikanTombolLogoutMuncul, 400);
+})();
+</script>
+
         '</body></html>';
 
     winDash.document.body.innerHTML = kontenHtml;
